@@ -3,6 +3,7 @@
     "description": "Auto-generates all Eloquent models from the database in a Laravel 5 project.",
     "keywords": ["laravel", "model", "eloquent", "artisan"],
     "license": "MIT",
+    "minimum-stability": "dev",
     "authors": [
         {
             "name": "Pepijn Olivier",
@@ -12,7 +13,6 @@
     "require": {
         "php": ">=5.4.0",
         "illuminate/support": ">=4.1",
-        "way/generators": "dev-feature/laravel-five-stable",
         "xethron/migrations-generator": "*"
     },
     "repositories": [
