@@ -1,0 +1,35 @@
+{
+    "name": "user11001/eloquent-model-generator",
+    "description": "Auto-generates all Eloquent models from the database in a Laravel 5 project.",
+    "keywords": ["laravel", "model", "eloquent", "artisan"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pepijn Olivier",
+            "email": "olivier.pepijn@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": ">=4.1",
+        "way/generators": "dev-feature/laravel-five-stable",
+        "xethron/migrations-generator": "*"
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git@github.com:jamisonvalenta/Laravel-4-Generators.git"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "User11001\\EloquentModelGenerator\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=4.0.0",
+        "mockery/mockery": ">=0.9.0",
+        "illuminate/cache": ">=4.1.0",
+        "illuminate/console": ">=4.1.0"
+    }
+}
