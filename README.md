@@ -32,7 +32,7 @@ You also need to point to the fork of the way/generators repo. See [Xethron/migr
 Next, run `composer update`
 
 
-Next, add the following service providers to your `app/config.php`
+Next, add the following service providers to your `config/app.php`
 ```
 'Way\Generators\GeneratorsServiceProvider',
 'Xethron\MigrationsGenerator\MigrationsGeneratorServiceProvider',
