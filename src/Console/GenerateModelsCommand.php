@@ -442,16 +442,24 @@ class GenerateModelsCommand extends GeneratorCommand {
         $foreignKeys = $properties['foreign'];
         $primaryKeys = $properties['primary'];
 
+
         //ensure we only have two foreign keys
         if(count($foreignKeys) === 2) {
 
             //ensure our foreign keys are not also defined as primary keys
+            $primaryKeyCountThatAreAlsoForeignKeys = 0;
             foreach($foreignKeys as $foreign) {
                 foreach($primaryKeys as $primary) {
                     if($primary['Column_name'] == $foreign['name']) {
-                        return false;
+                        $primaryKeyCountThatAreAlsoForeignKeys++;
                     }
                 }
+            }
+
+            if($primaryKeyCountThatAreAlsoForeignKeys === 1) {
+                //one of the keys foreign keys was also a primary key
+                //this is not a many to many. (many to many is only possible when both or none of the foreign keys are also primary)
+                return false;
             }
 
             //ensure no other tables refer to this one
