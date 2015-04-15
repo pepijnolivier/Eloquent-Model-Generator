@@ -424,11 +424,13 @@ class GenerateModelsCommand extends GeneratorCommand {
     }
 
 
-    //if FK is also a primary key, we know this will be a one to one relationship
+    //if FK is also a primary key, and there is only one primary key, we know this will be a one to one relationship
     function detectOneToOne($fk, $primary) {
-        foreach($primary as $prim) {
-            if($prim['Column_name'] === $fk['field']) {
-                return true;
+        if(count($primary) === 1) {
+            foreach($primary as $prim) {
+                if($prim['Column_name'] === $fk['field']) {
+                    return true;
+                }
             }
         }
         return false;
