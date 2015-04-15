@@ -246,14 +246,14 @@ class GenerateModelsCommand extends GeneratorCommand {
     }
 
     function getPluralFunctionName($modelName) {
-        $pluralFunctionName = strtolower($modelName);
-        $pluralFunctionName = rtrim($pluralFunctionName, 's') . 's';
+        $pluralFunctionName = lcfirst($modelName);
+        $pluralFunctionName = rtrim($pluralFunctionName, 's') . 's'; //@todo: this should use a dictionnary lib
         return $pluralFunctionName;
     }
 
     function getSingularFunctionName($modelName) {
-        $singularFunctionName = strtolower($modelName);
-        $singularFunctionName = rtrim($singularFunctionName, 's');
+        $singularFunctionName = lcfirst($modelName);
+        $singularFunctionName = rtrim($singularFunctionName, 's'); //@todo: this should use a dictionnary lib
         return $singularFunctionName;
     }
 
