@@ -305,7 +305,7 @@ class GenerateModelsCommand extends GeneratorCommand {
     }
 
     function getPrimaryKeysFromTable($table) {
-        $sql = "SHOW KEYS FROM $table WHERE Key_name = 'PRIMARY'";
+        $sql = "SHOW KEYS FROM `$table` WHERE Key_name = 'PRIMARY'";
         $primaryKeys = DB::select(DB::raw($sql));
 
         $prep = [];
