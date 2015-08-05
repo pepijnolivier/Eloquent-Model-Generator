@@ -2,7 +2,7 @@
 Auto-generates all Eloquent models from the database in a Laravel 5 project.
 This will also add all relation functions to your generated models (belongsTo, belongsToMany, hasMany, hasOne).
 
-> I'm also creating a ServiceProvider that will auto-generate basic CRUD functionality for these models
+> I'm also creating a ServiceProvider that will auto-generate basic CRUD functionality for these models. For now, you can use [Laravel Administrator](http://administrator.frozennode.com/) for this task.
 
 ##Installation
 
