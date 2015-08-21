@@ -45,3 +45,6 @@ Lastly, make sure your `.env` file has correct database information
 
 `php artisan models:generate`
 
+
+##Contributors
+Please contribute and help enhance this package. All pull requests will be revised quickly.
