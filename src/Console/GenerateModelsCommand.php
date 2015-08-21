@@ -134,7 +134,7 @@ class GenerateModelsCommand extends GeneratorCommand
             ]);
 
             $filePathToGenerate = $this->getFileGenerationPath();
-            $filePathToGenerate .= '/'.$modelName.'.php';
+            $filePathToGenerate .= '/Models/'.$modelName.'.php';
 
             $templateData = array(
                 'NAMESPACE' => self::$namespace,
