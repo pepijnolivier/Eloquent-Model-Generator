@@ -1,83 +1,83 @@
-<?php namespace User11001\EloquentModelGenerator\Console;
+<?php
+
+namespace User11001\EloquentModelGenerator\Console;
 
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-
 use Way\Generators\Commands\GeneratorCommand;
-use \Way\Generators\Generator;
-use \Way\Generators\Filesystem\Filesystem;
-use \Way\Generators\Compilers\TemplateCompiler;
-use \Illuminate\Config\Repository as Config;
+use Way\Generators\Generator;
+use Way\Generators\Filesystem\Filesystem;
+use Way\Generators\Compilers\TemplateCompiler;
+use Illuminate\Config\Repository as Config;
 use Xethron\MigrationsGenerator\Generators\SchemaGenerator;
 
-class GenerateModelsCommand extends GeneratorCommand {
+class GenerateModelsCommand extends GeneratorCommand
+{
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'models:generate';
 
-	/**
-	 * The console command name.
-	 *
-	 * @var string
-	 */
-	protected $name = 'models:generate';
-
-	/**
-	 * The console command description.
-	 *
-	 * @var string
-	 */
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
     protected $description = 'Generate Eloquent models from an existing table structure.';
 
     private $schemaGenerator;
     /**
-     * @param \Way\Generators\Generator  $generator
-     * @param \Way\Generators\Filesystem\Filesystem  $file
-     * @param \Way\Generators\Compilers\TemplateCompiler  $compiler
-     * @param \Illuminate\Config\Repository  $config
+     * @param \Way\Generators\Generator                  $generator
+     * @param \Way\Generators\Filesystem\Filesystem      $file
+     * @param \Way\Generators\Compilers\TemplateCompiler $compiler
+     * @param \Illuminate\Config\Repository              $config
      */
     public function __construct(
         Generator $generator,
         Filesystem $file,
         TemplateCompiler $compiler,
         Config $config
-    )
-    {
+    ) {
         $this->file = $file;
         $this->compiler = $compiler;
         $this->config = $config;
 
-        parent::__construct( $generator );
+        parent::__construct($generator);
     }
 
-	/**
-	 * Get the console command arguments.
-	 *
-	 * @return array
-	 */
-	protected function getArguments()
-	{
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getArguments()
+    {
         return [
-            ['tables', InputArgument::OPTIONAL, 'A list of Tables you wish to Generate Migrations for separated by a comma: users,posts,comments']
+            ['tables', InputArgument::OPTIONAL, 'A list of Tables you wish to Generate Migrations for separated by a comma: users,posts,comments'],
         ];
-	}
+    }
 
-	/**
-	 * Get the console command options.
-	 *
-	 * @return array
-	 */
-	protected function getOptions()
-	{
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
         //shameless copy
         return [
-            ['connection', 'c', InputOption::VALUE_OPTIONAL, 'The database connection to use.', $this->config->get( 'database.default' )],
+            ['connection', 'c', InputOption::VALUE_OPTIONAL, 'The database connection to use.', $this->config->get('database.default')],
             ['tables', 't', InputOption::VALUE_OPTIONAL, 'A list of Tables you wish to Generate Migrations for separated by a comma: users,posts,comments'],
-            ['ignore', 'i', InputOption::VALUE_OPTIONAL, 'A list of Tables you wish to ignore, separated by a comma: users,posts,comments' ],
+            ['ignore', 'i', InputOption::VALUE_OPTIONAL, 'A list of Tables you wish to ignore, separated by a comma: users,posts,comments'],
             ['path', 'p', InputOption::VALUE_OPTIONAL, 'Where should the file be created?'],
             ['templatePath', 'tp', InputOption::VALUE_OPTIONAL, 'The location of the template for this generator'],
             ['defaultIndexNames', null, InputOption::VALUE_NONE, 'Don\'t use db index names for migrations'],
-            ['defaultFKNames', null, InputOption::VALUE_NONE, 'Don\'t use db foreign key names for migrations']
+            ['defaultFKNames', null, InputOption::VALUE_NONE, 'Don\'t use db foreign key names for migrations'],
         ];
-	}
+    }
 
     /**
      * Execute the console command.
@@ -106,16 +106,16 @@ class GenerateModelsCommand extends GeneratorCommand {
         $this->info("\nAll done!");
     }
 
-
-    private function generateEloquentModels($eloquentRules) {
-        foreach($eloquentRules as $table => $rules) {
+    private function generateEloquentModels($eloquentRules)
+    {
+        foreach ($eloquentRules as $table => $rules) {
             //we will create a new model here
             $hasMany = $rules['hasMany'];
             $hasOne = $rules['hasOne'];
             $belongsTo = $rules['belongsTo'];
             $belongsToMany = $rules['belongsToMany'];
 
-            $namespace = env('APP_NAME','App');
+            $namespace = env('APP_NAME', 'App');
             $modelName = $this->generateModelNameFromTableName($table);
             $fillable = implode(', ', $rules['fillable']);
 
@@ -128,19 +128,18 @@ class GenerateModelsCommand extends GeneratorCommand {
                 $belongsToFunctions,
                 $belongsToManyFunctions,
                 $hasManyFunctions,
-                $hasOneFunctions
+                $hasOneFunctions,
             ]);
 
-
             $filePathToGenerate = $this->getFileGenerationPath();
-            $filePathToGenerate .= '/' . $modelName . '.php';
+            $filePathToGenerate .= '/'.$modelName.'.php';
 
             $templateData = array(
                 'NAMESPACE' => $namespace,
-                'NAME'=> $modelName,
+                'NAME' => $modelName,
                 'TABLENAME' => $table,
-                'FILLABLE'=> $fillable,
-                'FUNCTIONS' => $functions
+                'FILLABLE' => $fillable,
+                'FUNCTIONS' => $functions,
             );
 
             $templatePath = $this->getTemplatePath();
@@ -150,21 +149,23 @@ class GenerateModelsCommand extends GeneratorCommand {
                 $templateData,
                 $filePathToGenerate
             );
-
         }
     }
 
-    private function generateFunctions($functionsContainer) {
+    private function generateFunctions($functionsContainer)
+    {
         $f = '';
-        foreach($functionsContainer as $functions) {
+        foreach ($functionsContainer as $functions) {
             $f .= $functions;
         }
+
         return $f;
     }
 
-    private function generateHasManyFunctions($rulesContainer) {
+    private function generateHasManyFunctions($rulesContainer)
+    {
         $functions = '';
-        foreach($rulesContainer as $rules) {
+        foreach ($rulesContainer as $rules) {
             $hasManyModel = $this->generateModelNameFromTableName($rules[0]);
             $key1 = $rules[1];
             $key2 = $rules[2];
@@ -172,62 +173,62 @@ class GenerateModelsCommand extends GeneratorCommand {
             $hasManyFunctionName = $this->getPluralFunctionName($hasManyModel);
 
             $function = "
-    public function $hasManyFunctionName() {" . '
-        return $this->hasMany' . "('App\\$hasManyModel', '$key1', '$key2');
+    public function $hasManyFunctionName() {".'
+        return $this->hasMany'."('App\\$hasManyModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
         }
-        return $functions;
 
+        return $functions;
     }
 
-    private function generateHasOneFunctions($rulesContainer) {
+    private function generateHasOneFunctions($rulesContainer)
+    {
         $functions = '';
-        foreach($rulesContainer as $rules) {
+        foreach ($rulesContainer as $rules) {
             $hasOneModel = $this->generateModelNameFromTableName($rules[0]);
             $key1 = $rules[1];
             $key2 = $rules[2];
 
-
             $hasOneFunctionName = $this->getSingularFunctionName($hasOneModel);
 
             $function = "
-    public function $hasOneFunctionName() {" . '
-        return $this->hasOne' . "('App\\$hasOneModel', '$key1', '$key2');
+    public function $hasOneFunctionName() {".'
+        return $this->hasOne'."('App\\$hasOneModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
         }
+
         return $functions;
     }
 
-    private function generateBelongsToFunctions($rulesContainer) {
-
+    private function generateBelongsToFunctions($rulesContainer)
+    {
         $functions = '';
-        foreach($rulesContainer as $rules) {
+        foreach ($rulesContainer as $rules) {
             $belongsToModel = $this->generateModelNameFromTableName($rules[0]);
             $key1 = $rules[1];
             $key2 = $rules[2];
 
-
             $belongsToFunctionName = $this->getSingularFunctionName($belongsToModel);
 
             $function = "
-    public function $belongsToFunctionName() {" . '
-        return $this->belongsTo' . "('App\\$belongsToModel', '$key1', '$key2');
+    public function $belongsToFunctionName() {".'
+        return $this->belongsTo'."('App\\$belongsToModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
         }
+
         return $functions;
     }
 
-
-
-    private function generateBelongsToManyFunctions($rulesContainer) {
+    private function generateBelongsToManyFunctions($rulesContainer)
+    {
         $functions = '';
-        foreach($rulesContainer as $rules) {
+        foreach ($rulesContainer as $rules) {
             $belongsToManyModel = $this->generateModelNameFromTableName($rules[0]);
             $through = $rules[1];
             $key1 = $rules[2];
@@ -236,29 +237,33 @@ class GenerateModelsCommand extends GeneratorCommand {
             $belongsToManyFunctionName = $this->getPluralFunctionName($belongsToManyModel);
 
             $function = "
-    public function $belongsToManyFunctionName() {" . '
-        return $this->belongsToMany' . "('App\\$belongsToManyModel', '$through', '$key1', '$key2');
+    public function $belongsToManyFunctionName() {".'
+        return $this->belongsToMany'."('App\\$belongsToManyModel', '$through', '$key1', '$key2');
     }
 ";
             $functions .= $function;
         }
+
         return $functions;
     }
 
-    private function getPluralFunctionName($modelName) {
-//        $pluralFunctionName = lcfirst($modelName);
+    private function getPluralFunctionName($modelName)
+    {
+        //        $pluralFunctionName = lcfirst($modelName);
 //        $pluralFunctionName = rtrim($pluralFunctionName, 's') . 's'; //@todo: this should use a dictionnary lib
         return camel_case($modelName);
     }
 
-    private function getSingularFunctionName($modelName) {
-//        $singularFunctionName = lcfirst($modelName);
+    private function getSingularFunctionName($modelName)
+    {
+        //        $singularFunctionName = lcfirst($modelName);
 //        $singularFunctionName = rtrim($singularFunctionName, 's'); //@todo: this should use a dictionnary lib
         return camel_case($modelName);
     }
 
-    private function generateModelNameFromTableName($table) {
-//        $modelName = strtolower($table);
+    private function generateModelNameFromTableName($table)
+    {
+        //        $modelName = strtolower($table);
 //        //$modelName = ucfirst($modelName);
 //
 //        $modelName = $this->snakeToCamel($modelName);
@@ -272,9 +277,10 @@ class GenerateModelsCommand extends GeneratorCommand {
 //    }
 
 
-    private function getColumnsPrimaryAndForeignKeysPerTable($tables) {
+    private function getColumnsPrimaryAndForeignKeysPerTable($tables)
+    {
         $prep = [];
-        foreach($tables as $table) {
+        foreach ($tables as $table) {
             //get foreign keys
             $foreignKeys = $this->schemaGenerator->getForeignKeyConstraints($table);
 
@@ -286,9 +292,10 @@ class GenerateModelsCommand extends GeneratorCommand {
             $prep[$table] = [
                 'foreign' => $foreignKeys,
                 'primary' => $primaryKeys,
-                'columns' => $columns
+                'columns' => $columns,
             ];
         }
+
         return $prep;
     }
 
@@ -301,47 +308,48 @@ class GenerateModelsCommand extends GeneratorCommand {
                 AND TABLE_NAME='$table'";
 
         $columns = DB::select(DB::raw($sql));
+
         return $columns;
     }
 
-    private function getPrimaryKeysFromTable($table) {
+    private function getPrimaryKeysFromTable($table)
+    {
         $sql = "SHOW KEYS FROM `$table` WHERE Key_name = 'PRIMARY'";
         $primaryKeys = DB::select(DB::raw($sql));
 
         $prep = [];
-        foreach($primaryKeys as $index => $key) {
+        foreach ($primaryKeys as $index => $key) {
             $prep[$index] = (array) $key;
         }
+
         return $prep;
     }
 
-    private function getEloquentRules($prep) {
-
+    private function getEloquentRules($prep)
+    {
         $rules = [];
 
         //first create empty ruleset for each table
-        foreach($prep as $table => $properties) {
+        foreach ($prep as $table => $properties) {
             $rules[$table] = [
                 'hasMany' => [],
                 'hasOne' => [],
                 'belongsTo' => [],
                 'belongsToMany' => [],
-                'fillable' => []
+                'fillable' => [],
             ];
         }
 
-        foreach($prep as $table => $properties) {
-
+        foreach ($prep as $table => $properties) {
             $foreign = $properties['foreign'];
             $primary = $properties['primary'];
             $columns = $properties['columns'];
 
             $this->setFillableProperties($table, $rules, $columns);
 
-
             $isManyToMany = $this->detectManyToMany($prep, $table);
 
-            if($isManyToMany === true) {
+            if ($isManyToMany === true) {
                 $this->addManyToManyRules($table, $prep, $rules);
             }
 
@@ -349,10 +357,10 @@ class GenerateModelsCommand extends GeneratorCommand {
             //when we detect a many-to-many table, we still want to set relations on it
             //else
             {
-                foreach($foreign as $fk) {
+                foreach ($foreign as $fk) {
                     $isOneToOne = $this->detectOneToOne($fk, $primary);
 
-                    if($isOneToOne) {
+                    if ($isOneToOne) {
                         $this->addOneToOneRules($table, $rules, $fk);
                     } else {
                         $this->addOneToManyRules($table, $rules, $fk);
@@ -364,19 +372,21 @@ class GenerateModelsCommand extends GeneratorCommand {
         return $rules;
     }
 
-    private function setFillableProperties($table, &$rules, $columns) {
+    private function setFillableProperties($table, &$rules, $columns)
+    {
         $fillable = [];
-        foreach($columns as $item) {
+        foreach ($columns as $item) {
             $col = $item->COLUMN_NAME;
 
-            if(!ends_with($col, '_id') && $col !== 'id' && $col !== 'created_on' && $col !== 'updated_on') {
+            if (!ends_with($col, '_id') && $col !== 'id' && $col !== 'created_on' && $col !== 'updated_on') {
                 $fillable[] = "'$col'";
             }
         }
         $rules[$table]['fillable'] = $fillable;
     }
 
-    private function addOneToManyRules($table, &$rules, $fk) {
+    private function addOneToManyRules($table, &$rules, $fk)
+    {
         //$table belongs to $FK
         //FK hasMany $table
 
@@ -387,7 +397,8 @@ class GenerateModelsCommand extends GeneratorCommand {
         $rules[$table]['belongsTo'][] = [$fkTable, $field, $references];
     }
 
-    private function addOneToOneRules($table, &$rules, $fk) {
+    private function addOneToOneRules($table, &$rules, $fk)
+    {
         //$table belongsTo $FK
         //$FK hasOne $table
 
@@ -398,7 +409,8 @@ class GenerateModelsCommand extends GeneratorCommand {
         $rules[$table]['belongsTo'][] = [$fkTable, $field, $references];
     }
 
-    private function addManyToManyRules($table, $prep, &$rules) {
+    private function addManyToManyRules($table, $prep, &$rules)
+    {
 
         //$FK1 belongsToMany $FK2
         //$FK2 belongsToMany $FK1
@@ -420,52 +432,52 @@ class GenerateModelsCommand extends GeneratorCommand {
         $rules[$fk2Table]['belongsToMany'][] = [$fk1Table, $table, $fk2Field, $fk1Field];
     }
 
-
     //if FK is also a primary key, and there is only one primary key, we know this will be a one to one relationship
-    private function detectOneToOne($fk, $primary) {
-        if(count($primary) === 1) {
-            foreach($primary as $prim) {
-                if($prim['Column_name'] === $fk['field']) {
+    private function detectOneToOne($fk, $primary)
+    {
+        if (count($primary) === 1) {
+            foreach ($primary as $prim) {
+                if ($prim['Column_name'] === $fk['field']) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 
     //does this table have exactly two foreign keys that are also NOT primary,
     //and no tables in the database refer to this table?
-    private function detectManyToMany($prep, $table) {
-
+    private function detectManyToMany($prep, $table)
+    {
         $properties = $prep[$table];
         $foreignKeys = $properties['foreign'];
         $primaryKeys = $properties['primary'];
 
-
         //ensure we only have two foreign keys
-        if(count($foreignKeys) === 2) {
+        if (count($foreignKeys) === 2) {
 
             //ensure our foreign keys are not also defined as primary keys
             $primaryKeyCountThatAreAlsoForeignKeys = 0;
-            foreach($foreignKeys as $foreign) {
-                foreach($primaryKeys as $primary) {
-                    if($primary['Column_name'] === $foreign['name']) {
-                        $primaryKeyCountThatAreAlsoForeignKeys++;
+            foreach ($foreignKeys as $foreign) {
+                foreach ($primaryKeys as $primary) {
+                    if ($primary['Column_name'] === $foreign['name']) {
+                        ++$primaryKeyCountThatAreAlsoForeignKeys;
                     }
                 }
             }
 
-            if($primaryKeyCountThatAreAlsoForeignKeys === 1) {
+            if ($primaryKeyCountThatAreAlsoForeignKeys === 1) {
                 //one of the keys foreign keys was also a primary key
                 //this is not a many to many. (many to many is only possible when both or none of the foreign keys are also primary)
                 return false;
             }
 
             //ensure no other tables refer to this one
-            foreach($prep as $compareTable => $properties) {
-                if($table !== $compareTable) {
-                    foreach($properties['foreign'] as $prop) {
-                        if($prop['on'] === $table) {
+            foreach ($prep as $compareTable => $properties) {
+                if ($table !== $compareTable) {
+                    foreach ($properties['foreign'] as $prop) {
+                        if ($prop['on'] === $table) {
                             return false;
                         }
                     }
@@ -473,17 +485,19 @@ class GenerateModelsCommand extends GeneratorCommand {
             }
             //this is a many to many table!
             return true;
-
         }
+
         return false;
     }
 
-    private function initializeSchemaGenerator() {
+    private function initializeSchemaGenerator()
+    {
         $this->schemaGenerator = new SchemaGenerator(
             $this->option('connection'),
             $this->option('defaultIndexNames'),
             $this->option('defaultFKNames')
         );
+
         return $this->schemaGenerator;
     }
 
@@ -496,7 +510,7 @@ class GenerateModelsCommand extends GeneratorCommand {
     {
         return [
             'NAME' => ucwords($this->argument('modelName')),
-            'NAMESPACE' => 'App'
+            'NAMESPACE' => 'App',
         ];
     }
 
@@ -520,8 +534,8 @@ class GenerateModelsCommand extends GeneratorCommand {
      */
     protected function getTemplatePath()
     {
-        $tp = __DIR__ . '/templates/model.txt';
+        $tp = __DIR__.'/templates/model.txt';
+
         return $tp;
     }
-
 }
