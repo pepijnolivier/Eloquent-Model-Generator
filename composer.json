@@ -1,5 +1,5 @@
 {
-    "name": "smskin/eloquent-model-generator",
+    "name": "user11001/eloquent-model-generator",
     "description": "Auto-generates all Eloquent models from the database in a Laravel 5 project.",
     "keywords": ["laravel", "model", "eloquent", "artisan"],
     "license": "MIT",
