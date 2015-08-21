@@ -249,32 +249,28 @@ class GenerateModelsCommand extends GeneratorCommand
 
     private function getPluralFunctionName($modelName)
     {
-        //        $pluralFunctionName = lcfirst($modelName);
-//        $pluralFunctionName = rtrim($pluralFunctionName, 's') . 's'; //@todo: this should use a dictionnary lib
-        return camel_case($modelName);
+        $pluralFunctionName = lcfirst($modelName);
+        $pluralFunctionName = rtrim($pluralFunctionName, 's') . 's'; //@todo: this should use a dictionnary lib
+        return $pluralFunctionName;
     }
 
     private function getSingularFunctionName($modelName)
     {
-        //        $singularFunctionName = lcfirst($modelName);
-//        $singularFunctionName = rtrim($singularFunctionName, 's'); //@todo: this should use a dictionnary lib
-        return camel_case($modelName);
+        $singularFunctionName = lcfirst($modelName);
+        $singularFunctionName = rtrim($singularFunctionName, 's'); //@todo: this should use a dictionnary lib
+        return $singularFunctionName;
     }
 
     private function generateModelNameFromTableName($table)
     {
-        //        $modelName = strtolower($table);
-//        //$modelName = ucfirst($modelName);
-//
-//        $modelName = $this->snakeToCamel($modelName);
-//
-//        $modelName = rtrim($modelName, 's');
-        return camel_case($table);
-    }
+        $modelName = strtolower($table);
+        $modelName = ucfirst($modelName);
 
-//    private function snakeToCamel($val) {
-//        return str_replace(' ', '', ucwords(str_replace('_', ' ', $val)));
-//    }
+        $modelName = camel_case($modelName);
+
+        $modelName = rtrim($modelName, 's');
+        return $modelName;
+    }
 
 
     private function getColumnsPrimaryAndForeignKeysPerTable($tables)
