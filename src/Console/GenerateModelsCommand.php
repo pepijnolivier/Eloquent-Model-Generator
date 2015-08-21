@@ -21,6 +21,8 @@ class GenerateModelsCommand extends GeneratorCommand
      */
     protected $name = 'models:generate';
 
+    private static $namespace;
+
     /**
      * The console command description.
      *
@@ -115,7 +117,7 @@ class GenerateModelsCommand extends GeneratorCommand
             $belongsTo = $rules['belongsTo'];
             $belongsToMany = $rules['belongsToMany'];
 
-            $namespace = env('APP_NAME', 'App');
+            self::$namespace = env('DBContextNamespace','App');
             $modelName = $this->generateModelNameFromTableName($table);
             $fillable = implode(', ', $rules['fillable']);
 
@@ -135,7 +137,7 @@ class GenerateModelsCommand extends GeneratorCommand
             $filePathToGenerate .= '/'.$modelName.'.php';
 
             $templateData = array(
-                'NAMESPACE' => $namespace,
+                'NAMESPACE' => self::$namespace,
                 'NAME' => $modelName,
                 'TABLENAME' => $table,
                 'FILLABLE' => $fillable,
@@ -174,7 +176,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             $function = "
     public function $hasManyFunctionName() {".'
-        return $this->hasMany'."('App\\$hasManyModel', '$key1', '$key2');
+        return $this->hasMany'."('".self::$namespace."\\$hasManyModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
@@ -195,7 +197,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             $function = "
     public function $hasOneFunctionName() {".'
-        return $this->hasOne'."('App\\$hasOneModel', '$key1', '$key2');
+        return $this->hasOne'."('".self::$namespace."\\$hasOneModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
@@ -216,7 +218,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             $function = "
     public function $belongsToFunctionName() {".'
-        return $this->belongsTo'."('App\\$belongsToModel', '$key1', '$key2');
+        return $this->belongsTo'."('".self::$namespace."\\$belongsToModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
@@ -238,7 +240,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             $function = "
     public function $belongsToManyFunctionName() {".'
-        return $this->belongsToMany'."('App\\$belongsToManyModel', '$through', '$key1', '$key2');
+        return $this->belongsToMany'."('".self::$namespace."\\$belongsToManyModel', '$through', '$key1', '$key2');
     }
 ";
             $functions .= $function;
@@ -249,28 +251,28 @@ class GenerateModelsCommand extends GeneratorCommand
 
     private function getPluralFunctionName($modelName)
     {
-        $pluralFunctionName = lcfirst($modelName);
-        $pluralFunctionName = rtrim($pluralFunctionName, 's') . 's'; //@todo: this should use a dictionnary lib
-        return $pluralFunctionName;
+        $modelName = lcfirst($modelName);
+        return str_plural($modelName);
     }
 
     private function getSingularFunctionName($modelName)
     {
-        $singularFunctionName = lcfirst($modelName);
-        $singularFunctionName = rtrim($singularFunctionName, 's'); //@todo: this should use a dictionnary lib
-        return $singularFunctionName;
+        $modelName = lcfirst($modelName);
+        return str_singular($modelName);
     }
 
     private function generateModelNameFromTableName($table)
     {
+        /*
         $modelName = strtolower($table);
-        
+
         $modelName = camel_case($modelName);
 
         $modelName = ucfirst($modelName);
 
         $modelName = rtrim($modelName, 's');
-        return $modelName;
+        */
+        return ucfirst(camel_case($table));
     }
 
 
@@ -507,7 +509,7 @@ class GenerateModelsCommand extends GeneratorCommand
     {
         return [
             'NAME' => ucwords($this->argument('modelName')),
-            'NAMESPACE' => 'App',
+            'NAMESPACE' => env('DBContextNamespace','App'),
         ];
     }
 
@@ -520,7 +522,6 @@ class GenerateModelsCommand extends GeneratorCommand
     {
         $path = $this->getPathByOptionOrConfig('path', 'model_target_path');
 
-        //$path = $path. '/' . ucwords($this->argument('modelName')) . '.php';
         return $path;
     }
 
