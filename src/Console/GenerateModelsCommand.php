@@ -263,16 +263,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
     private function generateModelNameFromTableName($table)
     {
-        /*
-        $modelName = strtolower($table);
-
-        $modelName = camel_case($modelName);
-
-        $modelName = ucfirst($modelName);
-
-        $modelName = rtrim($modelName, 's');
-        */
-        return ucfirst(camel_case($table));
+        return ucfirst(camel_case(str_singular($table)));
     }
 
 
