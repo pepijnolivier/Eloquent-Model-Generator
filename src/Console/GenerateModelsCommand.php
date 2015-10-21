@@ -368,7 +368,7 @@ class GenerateModelsCommand extends GeneratorCommand
         foreach ($columns as $item) {
             $col = $item->COLUMN_NAME;
 
-            if (!ends_with($col, '_id') && $col !== 'id' && $col !== 'created_on' && $col !== 'updated_on') {
+            if ($col !== 'created_on' && $col !== 'updated_on') {
                 $fillable[] = "'$col'";
             }
         }
