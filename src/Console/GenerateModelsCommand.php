@@ -110,47 +110,62 @@ class GenerateModelsCommand extends GeneratorCommand
     private function generateEloquentModels($eloquentRules)
     {
         foreach ($eloquentRules as $table => $rules) {
-            //we will create a new model here
-            $hasMany = $rules['hasMany'];
-            $hasOne = $rules['hasOne'];
-            $belongsTo = $rules['belongsTo'];
-            $belongsToMany = $rules['belongsToMany'];
-
-            self::$namespace = env('APP_NAME','App\Models');
-            $modelName = $this->generateModelNameFromTableName($table);
-            $fillable = implode(', ', $rules['fillable']);
-
-            $belongsToFunctions = $this->generateBelongsToFunctions($belongsTo);
-            $belongsToManyFunctions = $this->generateBelongsToManyFunctions($belongsToMany);
-            $hasManyFunctions = $this->generateHasManyFunctions($hasMany);
-            $hasOneFunctions = $this->generateHasOneFunctions($hasOne);
-
-            $functions = $this->generateFunctions([
-                $belongsToFunctions,
-                $belongsToManyFunctions,
-                $hasManyFunctions,
-                $hasOneFunctions,
-            ]);
-
-            $filePathToGenerate = $this->getFileGenerationPath();
-            $filePathToGenerate .= '/'.$modelName.'.php';
-
-            $templateData = array(
-                'NAMESPACE' => self::$namespace,
-                'NAME' => $modelName,
-                'TABLENAME' => $table,
-                'FILLABLE' => $fillable,
-                'FUNCTIONS' => $functions
-            );
-
-            $templatePath = $this->getTemplatePath();
-
-            $this->generator->make(
-                $templatePath,
-                $templateData,
-                $filePathToGenerate
-            );
+            try {
+                $this->generateEloquentModel($table, $rules);
+            } catch(Exception $e) {
+                $this->error("\nFailed to generate model for table $table");
+                return;
+            }
         }
+    }
+
+    private function generateEloquentModel($table, $rules) {
+
+        $hasMany = $rules['hasMany'];
+        $hasOne = $rules['hasOne'];
+        $belongsTo = $rules['belongsTo'];
+        $belongsToMany = $rules['belongsToMany'];
+
+        self::$namespace = env('APP_NAME','App\Models');
+        $modelName = $this->generateModelNameFromTableName($table);
+        $fillable = implode(', ', $rules['fillable']);
+
+        $belongsToFunctions = $this->generateBelongsToFunctions($belongsTo);
+        $belongsToManyFunctions = $this->generateBelongsToManyFunctions($belongsToMany);
+        $hasManyFunctions = $this->generateHasManyFunctions($hasMany);
+        $hasOneFunctions = $this->generateHasOneFunctions($hasOne);
+
+        $functions = $this->generateFunctions([
+            $belongsToFunctions,
+            $belongsToManyFunctions,
+            $hasManyFunctions,
+            $hasOneFunctions,
+        ]);
+
+        $filePathToGenerate = $this->getFileGenerationPath();
+        $filePathToGenerate .= '/'.$modelName.'.php';
+
+        $templateData = array(
+            'NAMESPACE' => self::$namespace,
+            'NAME' => $modelName,
+            'TABLENAME' => $table,
+            'FILLABLE' => $fillable,
+            'FUNCTIONS' => $functions
+        );
+
+        $templatePath = $this->getTemplatePath();
+
+        if(file_exists($filePathToGenerate)) {
+            $this->warn("Skipped model generation (file already exists) $table -> $filePathToGenerate");
+            return;
+        }
+
+        $this->generator->make(
+            $templatePath,
+            $templateData,
+            $filePathToGenerate
+        );
+        $this->info("Generated model for table $table");
     }
 
     private function generateFunctions($functionsContainer)
@@ -275,7 +290,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             //get primary keys
             $primaryKeys = $this->schemaGenerator->getPrimaryKeys($table);
-    
+
             // get columns lists
             $__columns = $this->schemaGenerator->getSchema()->listTableColumns($table);
             $columns = [];
