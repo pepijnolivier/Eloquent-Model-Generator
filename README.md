@@ -43,7 +43,12 @@ Lastly, make sure your `.env` file has correct database information
 
 ##Usage
 
+**Default: generate all models into the default folder**
 `php artisan models:generate`
+
+**Specify path where to generate to**
+`php artisan models:generate --path="app/Models"`
+
 
 
 ##Example
