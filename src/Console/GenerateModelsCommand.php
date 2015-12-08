@@ -121,13 +121,26 @@ class GenerateModelsCommand extends GeneratorCommand
 
     private function generateEloquentModel($table, $rules) {
 
+        //0. set namespace
+        self::$namespace = env('APP_NAME','App\Models');
+
+        //1. Determine path where the file should be generated
+        $modelName = $this->generateModelNameFromTableName($table);
+        $filePathToGenerate = $this->getFileGenerationPath();
+        $filePathToGenerate .= '/'.$modelName.'.php';
+
+        if(file_exists($filePathToGenerate)) {
+            $this->warn("Skipped model generation (file already exists) $table -> $filePathToGenerate");
+            return;
+        }
+
+        //2.  generate relationship functions and fillable array
         $hasMany = $rules['hasMany'];
         $hasOne = $rules['hasOne'];
         $belongsTo = $rules['belongsTo'];
         $belongsToMany = $rules['belongsToMany'];
 
-        self::$namespace = env('APP_NAME','App\Models');
-        $modelName = $this->generateModelNameFromTableName($table);
+
         $fillable = implode(', ', $rules['fillable']);
 
         $belongsToFunctions = $this->generateBelongsToFunctions($belongsTo);
@@ -142,9 +155,7 @@ class GenerateModelsCommand extends GeneratorCommand
             $hasOneFunctions,
         ]);
 
-        $filePathToGenerate = $this->getFileGenerationPath();
-        $filePathToGenerate .= '/'.$modelName.'.php';
-
+        //3. prepare template data
         $templateData = array(
             'NAMESPACE' => self::$namespace,
             'NAME' => $modelName,
@@ -155,11 +166,8 @@ class GenerateModelsCommand extends GeneratorCommand
 
         $templatePath = $this->getTemplatePath();
 
-        if(file_exists($filePathToGenerate)) {
-            $this->warn("Skipped model generation (file already exists) $table -> $filePathToGenerate");
-            return;
-        }
 
+        //run Jeffrey's generator
         $this->generator->make(
             $templatePath,
             $templateData,
