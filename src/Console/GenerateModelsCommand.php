@@ -74,6 +74,7 @@ class GenerateModelsCommand extends GeneratorCommand
             ['tables', 't', InputOption::VALUE_OPTIONAL, 'A list of Tables you wish to Generate Migrations for separated by a comma: users,posts,comments'],
             ['path', 'p', InputOption::VALUE_OPTIONAL, 'Where should the file be created?'],
             ['namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Explicitly set the namespace'],
+            ['overwrite', 'o', InputOption::VALUE_NONE, 'Overwrite existing models ?'],
         ];
     }
 
@@ -158,8 +159,8 @@ class GenerateModelsCommand extends GeneratorCommand
         $modelName = $this->generateModelNameFromTableName($table);
         $filePathToGenerate = $destinationFolder . '/'.$modelName.'.php';
 
-        if(file_exists($filePathToGenerate)) {
-            $this->warn("Skipped model generation (file already exists) $table -> $filePathToGenerate");
+        $canContinue = $this->canGenerateEloquentModel($filePathToGenerate, $table);
+        if(!$canContinue) {
             return;
         }
 
@@ -202,6 +203,24 @@ class GenerateModelsCommand extends GeneratorCommand
             $filePathToGenerate
         );
         $this->info("Generated model for table $table");
+    }
+
+    private function canGenerateEloquentModel($filePathToGenerate, $table) {
+        $canOverWrite = $this->option('overwrite');
+        if(file_exists($filePathToGenerate)) {
+            if($canOverWrite) {
+                $deleted = unlink($filePathToGenerate);
+                if(!$deleted) {
+                    $this->warn("Failed to delete existing model $filePathToGenerate");
+                    return false;
+                }
+            } else {
+                $this->warn("Skipped model generation, file already exists. (force using --overwrite) $table -> $filePathToGenerate");
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function getNamespace() {

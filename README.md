@@ -44,13 +44,16 @@ Lastly, make sure your `.env` file has correct database information
 ##Usage
 
 **Default: generate all models into the default folder**
-`php artisan models:generate`
+> `php artisan models:generate`
 
 **Specify path where to generate to**
-`php artisan models:generate --path="app/Models"`
+> `php artisan models:generate --path="app/Models"`
 
 **Specify the namespace of the models**
-`php artisan models:generate --namespace="User11001/Models"`
+> `php artisan models:generate --namespace="User11001/Models"`
+
+**Overwrite existing models**
+> `php artisan models:generate --overwrite"`
 
 
 ##Example
