@@ -9,8 +9,7 @@ use Way\Generators\Commands\GeneratorCommand;
 use Way\Generators\Generator;
 use Way\Generators\Filesystem\Filesystem;
 use Way\Generators\Compilers\TemplateCompiler;
-use Illuminate\Config\Repository as Config;
-use Xethron\MigrationsGenerator\Generators\SchemaGenerator;
+use Illuminate\Contracts\Config\Repository as Config;
 
 class GenerateModelsCommand extends GeneratorCommand
 {
@@ -32,10 +31,10 @@ class GenerateModelsCommand extends GeneratorCommand
 
     private $schemaGenerator;
     /**
-     * @param \Way\Generators\Generator                  $generator
-     * @param \Way\Generators\Filesystem\Filesystem      $file
-     * @param \Way\Generators\Compilers\TemplateCompiler $compiler
-     * @param \Illuminate\Config\Repository              $config
+     * @param Generator  $generator
+     * @param Filesystem  $file
+     * @param TemplateCompiler  $compiler
+     * @param Config  $config
      */
     public function __construct(
         Generator $generator,
@@ -117,7 +116,7 @@ class GenerateModelsCommand extends GeneratorCommand
             $belongsTo = $rules['belongsTo'];
             $belongsToMany = $rules['belongsToMany'];
 
-            self::$namespace = env('DBContextNamespace','App');
+            self::$namespace = env('APP_NAME','App\Models');
             $modelName = $this->generateModelNameFromTableName($table);
             $fillable = implode(', ', $rules['fillable']);
 
@@ -134,14 +133,14 @@ class GenerateModelsCommand extends GeneratorCommand
             ]);
 
             $filePathToGenerate = $this->getFileGenerationPath();
-            $filePathToGenerate .= '/Models/'.$modelName.'.php';
+            $filePathToGenerate .= '/'.$modelName.'.php';
 
             $templateData = array(
                 'NAMESPACE' => self::$namespace,
                 'NAME' => $modelName,
                 'TABLENAME' => $table,
                 'FILLABLE' => $fillable,
-                'FUNCTIONS' => $functions,
+                'FUNCTIONS' => $functions
             );
 
             $templatePath = $this->getTemplatePath();
@@ -275,41 +274,20 @@ class GenerateModelsCommand extends GeneratorCommand
             $foreignKeys = $this->schemaGenerator->getForeignKeyConstraints($table);
 
             //get primary keys
-            $primaryKeys = $this->getPrimaryKeysFromTable($table);
-
-            $columns = $this->getColumnsForTable($table);
+            $primaryKeys = $this->schemaGenerator->getPrimaryKeys($table);
+    
+            // get columns lists
+            $__columns = $this->schemaGenerator->getSchema()->listTableColumns($table);
+            $columns = [];
+            foreach($__columns as $col) {
+                $columns[] = $col->toArray()['name'];
+            }
 
             $prep[$table] = [
                 'foreign' => $foreignKeys,
                 'primary' => $primaryKeys,
                 'columns' => $columns,
             ];
-        }
-
-        return $prep;
-    }
-
-    private function getColumnsForTable($table)
-    {
-        $db = \Config::get('database')['connections']['mysql']['database'];
-        $sql = "SELECT COLUMN_NAME
-                FROM INFORMATION_SCHEMA.COLUMNS
-                WHERE TABLE_SCHEMA='$db'
-                AND TABLE_NAME='$table'";
-
-        $columns = DB::select(DB::raw($sql));
-
-        return $columns;
-    }
-
-    private function getPrimaryKeysFromTable($table)
-    {
-        $sql = "SHOW KEYS FROM `$table` WHERE Key_name = 'PRIMARY'";
-        $primaryKeys = DB::select(DB::raw($sql));
-
-        $prep = [];
-        foreach ($primaryKeys as $index => $key) {
-            $prep[$index] = (array) $key;
         }
 
         return $prep;
@@ -365,11 +343,9 @@ class GenerateModelsCommand extends GeneratorCommand
     private function setFillableProperties($table, &$rules, $columns)
     {
         $fillable = [];
-        foreach ($columns as $item) {
-            $col = $item->COLUMN_NAME;
-
-            if (!ends_with($col, '_id') && $col !== 'id' && $col !== 'created_on' && $col !== 'updated_on') {
-                $fillable[] = "'$col'";
+        foreach ($columns as $column_name) {
+            if ($column_name !== 'created_at' && $column_name !== 'updated_at') {
+                $fillable[] = "'$column_name'";
             }
         }
         $rules[$table]['fillable'] = $fillable;
@@ -427,7 +403,7 @@ class GenerateModelsCommand extends GeneratorCommand
     {
         if (count($primary) === 1) {
             foreach ($primary as $prim) {
-                if ($prim['Column_name'] === $fk['field']) {
+                if ($prim === $fk['field']) {
                     return true;
                 }
             }
@@ -451,7 +427,7 @@ class GenerateModelsCommand extends GeneratorCommand
             $primaryKeyCountThatAreAlsoForeignKeys = 0;
             foreach ($foreignKeys as $foreign) {
                 foreach ($primaryKeys as $primary) {
-                    if ($primary['Column_name'] === $foreign['name']) {
+                    if ($primary === $foreign['name']) {
                         ++$primaryKeyCountThatAreAlsoForeignKeys;
                     }
                 }
@@ -500,7 +476,7 @@ class GenerateModelsCommand extends GeneratorCommand
     {
         return [
             'NAME' => ucwords($this->argument('modelName')),
-            'NAMESPACE' => env('DBContextNamespace','App'),
+            'NAMESPACE' => env('APP_NAME','App\Models'),
         ];
     }
 
