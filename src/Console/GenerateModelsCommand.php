@@ -10,7 +10,6 @@ use Way\Generators\Generator;
 use Way\Generators\Filesystem\Filesystem;
 use Way\Generators\Compilers\TemplateCompiler;
 use Illuminate\Contracts\Config\Repository as Config;
-use Xethron\MigrationsGenerator\Generators\SchemaGenerator;
 
 class GenerateModelsCommand extends GeneratorCommand
 {
@@ -275,41 +274,20 @@ class GenerateModelsCommand extends GeneratorCommand
             $foreignKeys = $this->schemaGenerator->getForeignKeyConstraints($table);
 
             //get primary keys
-            $primaryKeys = $this->getPrimaryKeysFromTable($table);
-
-            $columns = $this->getColumnsForTable($table);
+            $primaryKeys = $this->schemaGenerator->getPrimaryKeys($table);
+    
+            // get columns lists
+            $__columns = $this->schemaGenerator->getSchema()->listTableColumns($table);
+            $columns = [];
+            foreach($__columns as $col) {
+                $columns[] = $col->toArray()['name'];
+            }
 
             $prep[$table] = [
                 'foreign' => $foreignKeys,
                 'primary' => $primaryKeys,
                 'columns' => $columns,
             ];
-        }
-
-        return $prep;
-    }
-
-    private function getColumnsForTable($table)
-    {
-        $db = \Config::get('database')['connections']['mysql']['database'];
-        $sql = "SELECT COLUMN_NAME
-                FROM INFORMATION_SCHEMA.COLUMNS
-                WHERE TABLE_SCHEMA='$db'
-                AND TABLE_NAME='$table'";
-
-        $columns = DB::select(DB::raw($sql));
-
-        return $columns;
-    }
-
-    private function getPrimaryKeysFromTable($table)
-    {
-        $sql = "SHOW KEYS FROM `$table` WHERE Key_name = 'PRIMARY'";
-        $primaryKeys = DB::select(DB::raw($sql));
-
-        $prep = [];
-        foreach ($primaryKeys as $index => $key) {
-            $prep[$index] = (array) $key;
         }
 
         return $prep;
@@ -365,11 +343,9 @@ class GenerateModelsCommand extends GeneratorCommand
     private function setFillableProperties($table, &$rules, $columns)
     {
         $fillable = [];
-        foreach ($columns as $item) {
-            $col = $item->COLUMN_NAME;
-
-            if ($col !== 'created_on' && $col !== 'updated_on') {
-                $fillable[] = "'$col'";
+        foreach ($columns as $column_name) {
+            if ($column_name !== 'created_at' && $column_name !== 'updated_at') {
+                $fillable[] = "'$column_name'";
             }
         }
         $rules[$table]['fillable'] = $fillable;
@@ -427,7 +403,7 @@ class GenerateModelsCommand extends GeneratorCommand
     {
         if (count($primary) === 1) {
             foreach ($primary as $prim) {
-                if ($prim['Column_name'] === $fk['field']) {
+                if ($prim === $fk['field']) {
                     return true;
                 }
             }
@@ -451,7 +427,7 @@ class GenerateModelsCommand extends GeneratorCommand
             $primaryKeyCountThatAreAlsoForeignKeys = 0;
             foreach ($foreignKeys as $foreign) {
                 foreach ($primaryKeys as $primary) {
-                    if ($primary['Column_name'] === $foreign['name']) {
+                    if ($primary === $foreign['name']) {
                         ++$primaryKeyCountThatAreAlsoForeignKeys;
                     }
                 }
