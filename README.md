@@ -46,5 +46,9 @@ Lastly, make sure your `.env` file has correct database information
 `php artisan models:generate`
 
 
+##Example
+See mysql workbench schema and database.sql in `/example`
+
+
 ##Contributors
 Please contribute and help enhance this package. All pull requests will be revised quickly.
