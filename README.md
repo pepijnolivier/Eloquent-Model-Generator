@@ -49,6 +49,6 @@ Lastly, make sure your `.env` file has correct database information
 ##Example
 See mysql workbench schema `example.mwb` and `example.sql` in `/example`
 
-
-##Contributors
+##Contributors and Pull Requests
 Please contribute and help enhance this package. All pull requests will be revised quickly.
+Please use the development branch for pull requests.
