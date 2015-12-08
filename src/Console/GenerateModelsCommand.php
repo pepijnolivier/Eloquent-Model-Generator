@@ -87,6 +87,9 @@ class GenerateModelsCommand extends GeneratorCommand
      */
     public function fire()
     {
+        //0. determine destination folder
+        $destinationFolder = $this->getFileGenerationPath();
+
         //1. fetch all tables
         $this->info("\nFetching tables...");
         $this->initializeSchemaGenerator();
@@ -101,8 +104,8 @@ class GenerateModelsCommand extends GeneratorCommand
         $eloquentRules = $this->getEloquentRules($tables, $prep);
 
         //4. Generate our Eloquent Models
-        $this->info('Generating Eloquent models');
-        $this->generateEloquentModels($eloquentRules);
+        $this->info("Generating Eloquent models\n");
+        $this->generateEloquentModels($destinationFolder, $eloquentRules);
 
         $this->info("\nAll done!");
     }
@@ -137,11 +140,11 @@ class GenerateModelsCommand extends GeneratorCommand
         return array_values($tablesToGenerate);
     }
 
-    private function generateEloquentModels($eloquentRules)
+    private function generateEloquentModels($destinationFolder, $eloquentRules)
     {
         foreach ($eloquentRules as $table => $rules) {
             try {
-                $this->generateEloquentModel($table, $rules);
+                $this->generateEloquentModel($destinationFolder, $table, $rules);
             } catch(Exception $e) {
                 $this->error("\nFailed to generate model for table $table");
                 return;
@@ -149,15 +152,14 @@ class GenerateModelsCommand extends GeneratorCommand
         }
     }
 
-    private function generateEloquentModel($table, $rules) {
+    private function generateEloquentModel($destinationFolder, $table, $rules) {
 
         //0. set namespace
         self::$namespace = env('APP_NAME','App\Models');
 
         //1. Determine path where the file should be generated
         $modelName = $this->generateModelNameFromTableName($table);
-        $filePathToGenerate = $this->getFileGenerationPath();
-        $filePathToGenerate .= '/'.$modelName.'.php';
+        $filePathToGenerate = $destinationFolder . '/'.$modelName.'.php';
 
         if(file_exists($filePathToGenerate)) {
             $this->warn("Skipped model generation (file already exists) $table -> $filePathToGenerate");
@@ -195,7 +197,6 @@ class GenerateModelsCommand extends GeneratorCommand
         );
 
         $templatePath = $this->getTemplatePath();
-
 
         //run Jeffrey's generator
         $this->generator->make(
@@ -553,6 +554,11 @@ class GenerateModelsCommand extends GeneratorCommand
     protected function getFileGenerationPath()
     {
         $path = $this->getPathByOptionOrConfig('path', 'model_target_path');
+
+        if(!is_dir($path)) {
+            $this->warn('Path is not a directory, creating ' . $path);
+            mkdir($path);
+        }
 
         return $path;
     }
