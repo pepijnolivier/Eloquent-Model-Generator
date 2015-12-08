@@ -47,7 +47,7 @@ Lastly, make sure your `.env` file has correct database information
 
 
 ##Example
-See mysql workbench schema and database.sql in `/example`
+See mysql workbench schema `example.mwb` and `example.sql` in `/example`
 
 
 ##Contributors
