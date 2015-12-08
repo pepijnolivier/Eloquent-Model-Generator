@@ -87,10 +87,13 @@ class GenerateModelsCommand extends GeneratorCommand
      */
     public function fire()
     {
+        //0. determine destination folder
+        $destinationFolder = $this->getFileGenerationPath();
+
         //1. fetch all tables
         $this->info("\nFetching tables...");
         $this->initializeSchemaGenerator();
-        $tables = $this->schemaGenerator->getTables();
+        $tables = $this->getTables();
 
         //2. for each table, fetch primary and foreign keys
         $this->info('Fetching table columns, primary keys, foreign keys');
@@ -98,20 +101,50 @@ class GenerateModelsCommand extends GeneratorCommand
 
         //3. create an array of rules, holding the info for our Eloquent models to be
         $this->info('Generating Eloquent rules');
-        $eloquentRules = $this->getEloquentRules($prep);
+        $eloquentRules = $this->getEloquentRules($tables, $prep);
 
         //4. Generate our Eloquent Models
-        $this->info('Generating Eloquent models');
-        $this->generateEloquentModels($eloquentRules);
+        $this->info("Generating Eloquent models\n");
+        $this->generateEloquentModels($destinationFolder, $eloquentRules);
 
         $this->info("\nAll done!");
     }
 
-    private function generateEloquentModels($eloquentRules)
+    public function getTables() {
+        $schemaTables = $this->schemaGenerator->getTables();
+
+        $specifiedTables = $this->option('tables');
+
+        //when no tables specified, generate all tables
+        if(empty($specifiedTables)) {
+            return $schemaTables;
+        }
+
+        $specifiedTables = explode(',', $specifiedTables);
+
+
+        $tablesToGenerate = [];
+        foreach($specifiedTables as $specifiedTable) {
+            if(!in_array($specifiedTable, $schemaTables)) {
+                $this->error("specified table not found: $specifiedTable");
+            } else {
+                $tablesToGenerate[$specifiedTable] = $specifiedTable;
+            }
+        }
+
+        if(empty($tablesToGenerate)) {
+            $this->error('No tables to generate');
+            die;
+        }
+
+        return array_values($tablesToGenerate);
+    }
+
+    private function generateEloquentModels($destinationFolder, $eloquentRules)
     {
         foreach ($eloquentRules as $table => $rules) {
             try {
-                $this->generateEloquentModel($table, $rules);
+                $this->generateEloquentModel($destinationFolder, $table, $rules);
             } catch(Exception $e) {
                 $this->error("\nFailed to generate model for table $table");
                 return;
@@ -119,15 +152,14 @@ class GenerateModelsCommand extends GeneratorCommand
         }
     }
 
-    private function generateEloquentModel($table, $rules) {
+    private function generateEloquentModel($destinationFolder, $table, $rules) {
 
         //0. set namespace
         self::$namespace = env('APP_NAME','App\Models');
 
         //1. Determine path where the file should be generated
         $modelName = $this->generateModelNameFromTableName($table);
-        $filePathToGenerate = $this->getFileGenerationPath();
-        $filePathToGenerate .= '/'.$modelName.'.php';
+        $filePathToGenerate = $destinationFolder . '/'.$modelName.'.php';
 
         if(file_exists($filePathToGenerate)) {
             $this->warn("Skipped model generation (file already exists) $table -> $filePathToGenerate");
@@ -165,7 +197,6 @@ class GenerateModelsCommand extends GeneratorCommand
         );
 
         $templatePath = $this->getTemplatePath();
-
 
         //run Jeffrey's generator
         $this->generator->make(
@@ -316,7 +347,7 @@ class GenerateModelsCommand extends GeneratorCommand
         return $prep;
     }
 
-    private function getEloquentRules($prep)
+    private function getEloquentRules($tables, $prep)
     {
         $rules = [];
 
@@ -341,7 +372,7 @@ class GenerateModelsCommand extends GeneratorCommand
             $isManyToMany = $this->detectManyToMany($prep, $table);
 
             if ($isManyToMany === true) {
-                $this->addManyToManyRules($table, $prep, $rules);
+                $this->addManyToManyRules($tables, $table, $prep, $rules);
             }
 
             //the below used to be in an ELSE clause but we should be as verbose as possible
@@ -352,9 +383,9 @@ class GenerateModelsCommand extends GeneratorCommand
                     $isOneToOne = $this->detectOneToOne($fk, $primary);
 
                     if ($isOneToOne) {
-                        $this->addOneToOneRules($table, $rules, $fk);
+                        $this->addOneToOneRules($tables, $table, $rules, $fk);
                     } else {
-                        $this->addOneToManyRules($table, $rules, $fk);
+                        $this->addOneToManyRules($tables, $table, $rules, $fk);
                     }
                 }
             }
@@ -374,7 +405,7 @@ class GenerateModelsCommand extends GeneratorCommand
         $rules[$table]['fillable'] = $fillable;
     }
 
-    private function addOneToManyRules($table, &$rules, $fk)
+    private function addOneToManyRules($tables, $table, &$rules, $fk)
     {
         //$table belongs to $FK
         //FK hasMany $table
@@ -382,11 +413,15 @@ class GenerateModelsCommand extends GeneratorCommand
         $fkTable = $fk['on'];
         $field = $fk['field'];
         $references = $fk['references'];
-        $rules[$fkTable]['hasMany'][] = [$table, $field, $references];
-        $rules[$table]['belongsTo'][] = [$fkTable, $field, $references];
+        if(in_array($fkTable, $tables)) {
+            $rules[$fkTable]['hasMany'][] = [$table, $field, $references];
+        }
+        if(in_array($table, $tables)) {
+            $rules[$table]['belongsTo'][] = [$fkTable, $field, $references];
+        }
     }
 
-    private function addOneToOneRules($table, &$rules, $fk)
+    private function addOneToOneRules($tables, $table, &$rules, $fk)
     {
         //$table belongsTo $FK
         //$FK hasOne $table
@@ -394,11 +429,15 @@ class GenerateModelsCommand extends GeneratorCommand
         $fkTable = $fk['on'];
         $field = $fk['field'];
         $references = $fk['references'];
-        $rules[$fkTable]['hasOne'][] = [$table, $field, $references];
-        $rules[$table]['belongsTo'][] = [$fkTable, $field, $references];
+        if(in_array($fkTable, $tables)) {
+            $rules[$fkTable]['hasOne'][] = [$table, $field, $references];
+        }
+        if(in_array($table, $tables)) {
+            $rules[$table]['belongsTo'][] = [$fkTable, $field, $references];
+        }
     }
 
-    private function addManyToManyRules($table, $prep, &$rules)
+    private function addManyToManyRules($tables, $table, $prep, &$rules)
     {
 
         //$FK1 belongsToMany $FK2
@@ -417,8 +456,12 @@ class GenerateModelsCommand extends GeneratorCommand
         //$fk2References = $fk2['references'];
 
         //User belongstomany groups user_group, user_id, group_id
-        $rules[$fk1Table]['belongsToMany'][] = [$fk2Table, $table, $fk1Field, $fk2Field];
-        $rules[$fk2Table]['belongsToMany'][] = [$fk1Table, $table, $fk2Field, $fk1Field];
+        if(in_array($fk1Table, $tables)) {
+            $rules[$fk1Table]['belongsToMany'][] = [$fk2Table, $table, $fk1Field, $fk2Field];
+        }
+        if(in_array($fk2Table, $tables)) {
+            $rules[$fk2Table]['belongsToMany'][] = [$fk1Table, $table, $fk2Field, $fk1Field];
+        }
     }
 
     //if FK is also a primary key, and there is only one primary key, we know this will be a one to one relationship
@@ -511,6 +554,11 @@ class GenerateModelsCommand extends GeneratorCommand
     protected function getFileGenerationPath()
     {
         $path = $this->getPathByOptionOrConfig('path', 'model_target_path');
+
+        if(!is_dir($path)) {
+            $this->warn('Path is not a directory, creating ' . $path);
+            mkdir($path);
+        }
 
         return $path;
     }
