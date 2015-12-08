@@ -12,7 +12,7 @@ Add the following packages to your `composer.json`
 "require-dev": {
     "xethron/migrations-generator": "dev-l5",
     "way/generators": "dev-feature/laravel-five-stable",
-    "user11001/eloquent-model-generator": "dev-master"
+    "user11001/eloquent-model-generator": "~1.0"
 }
 ```
 
