@@ -21,7 +21,6 @@ class GenerateModelsCommand extends GeneratorCommand
     protected $name = 'models:generate';
 
     private static $namespace;
-
     /**
      * The console command description.
      *
@@ -229,6 +228,8 @@ class GenerateModelsCommand extends GeneratorCommand
             $ns = env('APP_NAME','App\Models');
         }
 
+        //convert forward slashes in the namespace to backslashes
+        $ns = str_replace('/', '\\', $ns);
         return $ns;
 
     }
