@@ -73,6 +73,7 @@ class GenerateModelsCommand extends GeneratorCommand
             ['connection', 'c', InputOption::VALUE_OPTIONAL, 'The database connection to use.', $this->config->get('database.default')],
             ['tables', 't', InputOption::VALUE_OPTIONAL, 'A list of Tables you wish to Generate Migrations for separated by a comma: users,posts,comments'],
             ['path', 'p', InputOption::VALUE_OPTIONAL, 'Where should the file be created?'],
+            ['namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Explicitly set the namespace'],
         ];
     }
 
@@ -138,6 +139,9 @@ class GenerateModelsCommand extends GeneratorCommand
 
     private function generateEloquentModels($destinationFolder, $eloquentRules)
     {
+        //0. set namespace
+        self::$namespace = $this->getNamespace();
+
         foreach ($eloquentRules as $table => $rules) {
             try {
                 $this->generateEloquentModel($destinationFolder, $table, $rules);
@@ -149,9 +153,6 @@ class GenerateModelsCommand extends GeneratorCommand
     }
 
     private function generateEloquentModel($destinationFolder, $table, $rules) {
-
-        //0. set namespace
-        self::$namespace = env('APP_NAME','App\Models');
 
         //1. Determine path where the file should be generated
         $modelName = $this->generateModelNameFromTableName($table);
@@ -201,6 +202,16 @@ class GenerateModelsCommand extends GeneratorCommand
             $filePathToGenerate
         );
         $this->info("Generated model for table $table");
+    }
+
+    private function getNamespace() {
+        $ns = $this->option('namespace');
+        if(empty($ns)) {
+            $ns = env('APP_NAME','App\Models');
+        }
+
+        return $ns;
+
     }
 
     private function generateFunctions($functionsContainer)
