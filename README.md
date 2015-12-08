@@ -49,6 +49,8 @@ Lastly, make sure your `.env` file has correct database information
 **Specify path where to generate to**
 `php artisan models:generate --path="app/Models"`
 
+**Specify the namespace of the models**
+`php artisan models:generate --namespace="User11001/Models"`
 
 
 ##Example
