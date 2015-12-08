@@ -12,9 +12,11 @@ Add the following packages to your `composer.json`
 "require-dev": {
     "xethron/migrations-generator": "dev-l5",
     "way/generators": "dev-feature/laravel-five-stable",
-    "user11001/eloquent-model-generator": "~1.0"
+    "user11001/eloquent-model-generator": "~2.0"
 }
 ```
+
+Notice: Laravel 5.0 users should use `"user11001/eloquent-model-generator": "~1.0"`, since 2.0 this package uses the 'modern' relationship notation
 
 
 You also need to point to the fork of the way/generators repo. See [Xethron/migrations-generator](https://github.com/Xethron/migrations-generator) for more info about this.
