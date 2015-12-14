@@ -30,6 +30,13 @@ class EloquentModelGeneratorProvider extends ServiceProvider
      */
     public function boot()
     {
+        $viewPath = __DIR__ . '/Console/templates/';
+        $this->loadViewsFrom($viewPath, 'views');
+
+        $this->publishes([
+           $viewPath => base_path('resources/eloquent-model-generator-templates'),
+        ]);
+
     }
 
     /**

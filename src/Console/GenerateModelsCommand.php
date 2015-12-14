@@ -56,7 +56,7 @@ class GenerateModelsCommand extends GeneratorCommand
     protected function getArguments()
     {
         return [
-            ['tables', InputArgument::OPTIONAL, 'A list of Tables you wish to Generate Migrations for separated by a comma: users,posts,comments'],
+            ['tables', InputArgument::OPTIONAL, 'A list of Tables you wish to Generate models for separated by a comma: users,posts,comments'],
         ];
     }
 
@@ -67,10 +67,9 @@ class GenerateModelsCommand extends GeneratorCommand
      */
     protected function getOptions()
     {
-        //shameless copy
         return [
             ['connection', 'c', InputOption::VALUE_OPTIONAL, 'The database connection to use.', $this->config->get('database.default')],
-            ['tables', 't', InputOption::VALUE_OPTIONAL, 'A list of Tables you wish to Generate Migrations for separated by a comma: users,posts,comments'],
+            ['tables', 't', InputOption::VALUE_OPTIONAL, 'A list of Tables you wish to Generate models, for separated by a comma: users,posts,comments'],
             ['path', 'p', InputOption::VALUE_OPTIONAL, 'Where should the file be created?'],
             ['namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Explicitly set the namespace'],
             ['overwrite', 'o', InputOption::VALUE_NONE, 'Overwrite existing models ?'],
@@ -425,7 +424,9 @@ class GenerateModelsCommand extends GeneratorCommand
     {
         $fillable = [];
         foreach ($columns as $column_name) {
-            if ($column_name !== 'created_at' && $column_name !== 'updated_at') {
+            if ($column_name !== 'created_at'
+             && $column_name !== 'updated_at'
+             && $column_name !== 'deleted_at') {
                 $fillable[] = "'$column_name'";
             }
         }
@@ -599,6 +600,15 @@ class GenerateModelsCommand extends GeneratorCommand
     {
         $tp = __DIR__.'/templates/model.txt';
 
+        //first try finding the published version
+        $publishedTemplatePath = base_path('resources/eloquent-model-generator-templates/model.txt');
+        if(is_file($publishedTemplatePath)) {
+            return $publishedTemplatePath;
+        }
+
+        //just use the default
+        $tp = __DIR__.'/templates/model.txt';
         return $tp;
+
     }
 }
