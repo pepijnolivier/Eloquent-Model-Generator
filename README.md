@@ -55,7 +55,7 @@ Lastly, make sure your `.env` file has correct database information
 > `php artisan models:generate --namespace="User11001/Models"`
 
 **Overwrite existing models**
-> `php artisan models:generate --overwrite"`
+> `php artisan models:generate --overwrite`
 
 
 ##Example
