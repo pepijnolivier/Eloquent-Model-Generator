@@ -21,6 +21,7 @@ class GenerateModelsCommand extends GeneratorCommand
     protected $name = 'models:generate';
 
     private static $namespace;
+
     /**
      * The console command description.
      *
@@ -228,8 +229,6 @@ class GenerateModelsCommand extends GeneratorCommand
             $ns = env('APP_NAME','App\Models');
         }
 
-        //convert forward slashes in the namespace to backslashes
-        $ns = str_replace('/', '\\', $ns);
         return $ns;
 
     }
@@ -256,7 +255,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             $function = "
     public function $hasManyFunctionName() {".'
-        return $this->hasMany'."(\\".self::$namespace."\\$hasManyModel::class, '$key1', '$key2');
+        return $this->hasMany'."('".self::$namespace."\\$hasManyModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
@@ -277,7 +276,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             $function = "
     public function $hasOneFunctionName() {".'
-        return $this->hasOne'."(\\".self::$namespace."\\$hasOneModel::class, '$key1', '$key2');
+        return $this->hasOne'."('".self::$namespace."\\$hasOneModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
@@ -298,7 +297,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             $function = "
     public function $belongsToFunctionName() {".'
-        return $this->belongsTo'."(\\".self::$namespace."\\$belongsToModel::class, '$key1', '$key2');
+        return $this->belongsTo'."('".self::$namespace."\\$belongsToModel', '$key1', '$key2');
     }
 ";
             $functions .= $function;
@@ -320,7 +319,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
             $function = "
     public function $belongsToManyFunctionName() {".'
-        return $this->belongsToMany'."(\\".self::$namespace."\\$belongsToManyModel::class, '$through', '$key1', '$key2');
+        return $this->belongsToMany'."('".self::$namespace."\\$belongsToManyModel', '$through', '$key1', '$key2');
     }
 ";
             $functions .= $function;
@@ -332,13 +331,13 @@ class GenerateModelsCommand extends GeneratorCommand
     private function getPluralFunctionName($modelName)
     {
         $modelName = lcfirst($modelName);
-        return str_plural($modelName);
+        return str_plural(mb_strtolower($modelName));
     }
 
     private function getSingularFunctionName($modelName)
     {
         $modelName = lcfirst($modelName);
-        return str_singular($modelName);
+        return str_singular(mb_strtolower($modelName));
     }
 
     private function generateModelNameFromTableName($table)
