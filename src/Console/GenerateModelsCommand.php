@@ -155,6 +155,7 @@ class GenerateModelsCommand extends GeneratorCommand
 
     private function generateEloquentModel($destinationFolder, $table, $rules) {
 
+
         //1. Determine path where the file should be generated
         $modelName = $this->generateModelNameFromTableName($table);
         $filePathToGenerate = $destinationFolder . '/'.$modelName.'.php';
@@ -185,13 +186,22 @@ class GenerateModelsCommand extends GeneratorCommand
             $hasOneFunctions,
         ]);
 
+        $keys = $this->schemaGenerator->getPrimaryKeys($table);
+
+        if(sizeof($keys) == 1){
+            $primaryKeys = "'".current($keys)."'";
+        }else{
+            $primaryKeys = "array('".implode(",",$keys)."')";
+        }
+
         //3. prepare template data
         $templateData = array(
             'NAMESPACE' => self::$namespace,
             'NAME' => $modelName,
             'TABLENAME' => $table,
             'FILLABLE' => $fillable,
-            'FUNCTIONS' => $functions
+            'FUNCTIONS' => $functions,
+            'PRIMARYKEY' => $primaryKeys
         );
 
         $templatePath = $this->getTemplatePath();

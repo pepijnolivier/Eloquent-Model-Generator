@@ -11,6 +11,8 @@ class $NAME$ extends Model {
     protected $table = '$TABLENAME$';
     protected $fillable = [$FILLABLE$];
 
+    protected $primaryKey = $PRIMARYKEY$;
+
 $FUNCTIONS$
 
 }
