@@ -258,8 +258,8 @@ class GenerateModelsCommand extends GeneratorCommand
         $functions = '';
         foreach ($rulesContainer as $rules) {
             $hasManyModel = $this->generateModelNameFromTableName($rules[0]);
-            $key1 = $rules[1];
-            $key2 = $rules[2];
+            $key1 = mb_strtolower($rules[1]);
+            $key2 = mb_strtolower($rules[2]);
 
             $hasManyFunctionName = $this->getPluralFunctionName($hasManyModel);
 
@@ -279,8 +279,8 @@ class GenerateModelsCommand extends GeneratorCommand
         $functions = '';
         foreach ($rulesContainer as $rules) {
             $hasOneModel = $this->generateModelNameFromTableName($rules[0]);
-            $key1 = $rules[1];
-            $key2 = $rules[2];
+            $key1 = mb_strtolower($rules[1]);
+            $key2 = mb_strtolower($rules[2]);
 
             $hasOneFunctionName = $this->getSingularFunctionName($hasOneModel);
 
@@ -300,8 +300,8 @@ class GenerateModelsCommand extends GeneratorCommand
         $functions = '';
         foreach ($rulesContainer as $rules) {
             $belongsToModel = $this->generateModelNameFromTableName($rules[0]);
-            $key1 = $rules[1];
-            $key2 = $rules[2];
+            $key1 = mb_strtolower($rules[1]);
+            $key2 = mb_strtolower($rules[2]);
 
             $belongsToFunctionName = $this->getSingularFunctionName($belongsToModel);
 
@@ -321,9 +321,9 @@ class GenerateModelsCommand extends GeneratorCommand
         $functions = '';
         foreach ($rulesContainer as $rules) {
             $belongsToManyModel = $this->generateModelNameFromTableName($rules[0]);
-            $through = $rules[1];
-            $key1 = $rules[2];
-            $key2 = $rules[3];
+            $through = mb_strtolower($rules[1]);
+            $key1 = mb_strtolower($rules[2]);
+            $key2 = mb_strtolower($rules[3]);
 
             $belongsToManyFunctionName = $this->getPluralFunctionName($belongsToManyModel);
 
@@ -610,4 +610,3 @@ class GenerateModelsCommand extends GeneratorCommand
 
         return $tp;
     }
-}
