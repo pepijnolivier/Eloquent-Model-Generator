@@ -28,6 +28,25 @@ class GenerateModelsCommand extends GeneratorCommand
      */
     protected $description = 'Generate Eloquent models from an existing table structure.';
 
+    /**
+     * Fields not included in the generator by default
+     *
+     * @var array
+     */
+    protected $excluded_fields = [
+      'created_at',
+      'updated_at',
+    ];
+
+    /**
+     * Tables that do not require a generated model
+     *
+     * @var array
+     */
+    protected $excluded_tables = [
+      'migrations', // laravel's default migration table
+    ];
+
     private $schemaGenerator;
     /**
      * @param Generator  $generator
@@ -69,7 +88,6 @@ class GenerateModelsCommand extends GeneratorCommand
     {
         return [
             ['connection', 'c', InputOption::VALUE_OPTIONAL, 'The database connection to use.', $this->config->get('database.default')],
-            ['tables', 't', InputOption::VALUE_OPTIONAL, 'A list of Tables you wish to Generate models, for separated by a comma: users,posts,comments'],
             ['path', 'p', InputOption::VALUE_OPTIONAL, 'Where should the file be created?'],
             ['namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Explicitly set the namespace'],
             ['overwrite', 'o', InputOption::VALUE_NONE, 'Overwrite existing models ?'],
@@ -109,7 +127,7 @@ class GenerateModelsCommand extends GeneratorCommand
     public function getTables() {
         $schemaTables = $this->schemaGenerator->getTables();
 
-        $specifiedTables = $this->option('tables');
+        $specifiedTables = $this->argument('tables');
 
         //when no tables specified, generate all tables
         if(empty($specifiedTables)) {
@@ -142,11 +160,14 @@ class GenerateModelsCommand extends GeneratorCommand
         self::$namespace = $this->getNamespace();
 
         foreach ($eloquentRules as $table => $rules) {
-            try {
-                $this->generateEloquentModel($destinationFolder, $table, $rules);
-            } catch(Exception $e) {
-                $this->error("\nFailed to generate model for table $table");
-                return;
+            if(!in_array($table, $this->excluded_tables)) {
+                try {
+                    $this->generateEloquentModel($destinationFolder, $table,
+                      $rules);
+                } catch (Exception $e) {
+                    $this->error("\nFailed to generate model for table $table");
+                    return;
+                }
             }
         }
     }
@@ -420,13 +441,14 @@ class GenerateModelsCommand extends GeneratorCommand
         return $rules;
     }
 
-    private function setFillableProperties($table, &$rules, $columns)
+    private function setFillableProperties($table, &$rules, $columns, $primary_keys = ['id'])
     {
         $fillable = [];
+
+        $excluded = array_merge($this->excluded_fields, $primary_keys);
+
         foreach ($columns as $column_name) {
-            if ($column_name !== 'created_at'
-             && $column_name !== 'updated_at'
-             && $column_name !== 'deleted_at') {
+            if (!in_array($column_name, $excluded)) {
                 $fillable[] = "'$column_name'";
             }
         }
