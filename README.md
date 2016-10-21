@@ -64,3 +64,7 @@ See mysql workbench schema `example.mwb` and `example.sql` in `/example`
 ##Contributors and Pull Requests
 Please contribute and help enhance this package. All pull requests will be revised quickly.
 Please use the development branch for pull requests.
+
+<a href="https://rollbar.com"><img src="https://d26gfdfi90p7cf.cloudfront.net/rollbar-badge.144534.o.png" alt=“Rollbar Error Tracking /></a>
+
+
