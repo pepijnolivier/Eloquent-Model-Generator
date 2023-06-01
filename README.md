@@ -12,6 +12,10 @@ This package will generate models with their appropriate Eloquent relations base
 
 For automatically generating migrations, see [kitloong/laravel-migrations-generator](https://github.com/kitloong/laravel-migrations-generator)
 
+## Requirements
+
+- PHP 8.1+
+- Laravel 8+
 
 ## Installation
 
