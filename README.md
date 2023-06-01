@@ -1,70 +1,99 @@
-# Eloquent-Model-Generator for Laravel 5
-Auto-generates all Eloquent models from the database in a Laravel 5 project.
-This will also add all relation functions to your generated models (belongsTo, belongsToMany, hasMany, hasOne).
-
-> I'm also creating a ServiceProvider that will auto-generate basic CRUD functionality for these models. For now, you can use [Laravel Administrator](https://github.com/FrozenNode/Laravel-Administrator) or [Dick Crud](https://github.com/tabacitu/crud) for this task. You should also look at [Laravel API Generator](https://github.com/mitulgolakiya/laravel-api-generator)
-
-##Installation
-
-Add the following packages to your `composer.json`
-
-```
-"require-dev": {
-    "xethron/migrations-generator": "dev-l5",
-    "way/generators": "dev-feature/laravel-five-stable",
-    "user11001/eloquent-model-generator": "~2.0"
-}
-```
-
-Notice: Laravel 5.0 users should use `"user11001/eloquent-model-generator": "~1.0"`, since 2.0 this package uses the 'modern' relationship notation
+# Eloquent Model Generator
 
 
-You also need to point to the fork of the way/generators repo. See [Xethron/migrations-generator](https://github.com/Xethron/migrations-generator) for more info about this.
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/pepijnolivier/eloquent-model-generator.svg?style=flat-square)](https://packagist.org/packages/pepijnolivier/eloquent-model-generator)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/pepijnolivier/eloquent-model-generator/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/pepijnolivier/eloquent-model-generator/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/pepijnolivier/eloquent-model-generator/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/pepijnolivier/eloquent-model-generator/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/pepijnolivier/eloquent-model-generator.svg?style=flat-square)](https://packagist.org/packages/pepijnolivier/eloquent-model-generator)
 
-```
-"repositories": [
-    {
-        "type": "git",
-        "url": "git@github.com:jamisonvalenta/Laravel-4-Generators.git"
-    }
-]
+
+
+This package will generate models with their appropriate Eloquent relations based on an existing database.
+
+For automatically generating migrations, see [kitloong/laravel-migrations-generator](https://github.com/kitloong/laravel-migrations-generator)
+
+
+## Installation
+
+You can install the package via composer:
+
+```bash
+composer require pepijnolivier/eloquent-model-generator
 ```
 
+You can publish the config file with:
 
-Next, run `composer update`
-
-
-Next, add the following service providers to your `config/app.php`
-```
-'Way\Generators\GeneratorsServiceProvider',
-'Xethron\MigrationsGenerator\MigrationsGeneratorServiceProvider',
-'User11001\EloquentModelGenerator\EloquentModelGeneratorProvider',
+```bash
+php artisan vendor:publish --tag="eloquent-model-generator-config"
 ```
 
-Lastly, make sure your `.env` file has correct database information
+This is the contents of the published config file:
 
-##Usage
+```php
+<?php
 
-**Default: generate all models into the default folder**
-> `php artisan models:generate`
+use Illuminate\Database\Eloquent\Model;
 
-**Specify path where to generate to**
-> `php artisan models:generate --path="app/Models"`
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Namespace
+    |--------------------------------------------------------------------------
+    |
+    | The default namespace for generated models.
+    |
+    */
+    'model_namespace' => 'App\Models\Generated',
+    'trait_namespace' => 'App\Models\Generated\Relations',
 
-**Specify the namespace of the models**
-> `php artisan models:generate --namespace="User11001/Models"`
+    /*
+    |--------------------------------------------------------------------------
+    | Output Path
+    |--------------------------------------------------------------------------
+    |
+    | Path where the models will be created.
+    |
+    */
+    'model_path' => 'app/Models/Generated',
+    'trait_path' => 'app/Models/Generated/Relations',
 
-**Overwrite existing models**
-> `php artisan models:generate --overwrite`
+    /*
+    |--------------------------------------------------------------------------
+    | Extend Model
+    |--------------------------------------------------------------------------
+    |
+    | Extend the base model.
+    |
+    */
+    'extend' => Model::class,
+];
+
+```
 
 
-##Example
-See mysql workbench schema `example.mwb` and `example.sql` in `/example`
+## Usage
 
-##Contributors and Pull Requests
-Please contribute and help enhance this package. All pull requests will be revised quickly.
-Please use the development branch for pull requests.
+```php
+php artisan generate:models
+```
 
-<a href="https://rollbar.com"><img src="https://d26gfdfi90p7cf.cloudfront.net/rollbar-badge.144534.o.png" alt=“Rollbar Error Tracking /></a>
+## Testing
 
+```bash
+composer test
+```
 
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+## Security Vulnerabilities
+
+Please see [SECURITY](SECURITY.md) for details.
+
+## Credits
+
+- [Pepijn Olivier](https://github.com/pepijnolivier)
+- [All Contributors](../../contributors)
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
