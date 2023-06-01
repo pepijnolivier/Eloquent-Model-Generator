@@ -22,7 +22,7 @@ For automatically generating migrations, see [kitloong/laravel-migrations-genera
 You can install the package via composer:
 
 ```bash
-composer require pepijnolivier/eloquent-model-generator
+composer require --dev pepijnolivier/eloquent-model-generator
 ```
 
 You can publish the config file with:
