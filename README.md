@@ -8,9 +8,9 @@
 
 
 
-This package will generate models with their appropriate Eloquent relations based on an existing database.
+This Laravel package will generate models with their appropriate Eloquent relations based on an existing database schema.
 
-For automatically generating migrations, see [kitloong/laravel-migrations-generator](https://github.com/kitloong/laravel-migrations-generator)
+For automatically generating database migrations for your schema, see [kitloong/laravel-migrations-generator](https://github.com/kitloong/laravel-migrations-generator)
 
 ## Requirements
 
