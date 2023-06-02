@@ -12,12 +12,17 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
 
 class RelationsGenerator
 {
+    protected array $relationsMap = [];
     public function __construct(
         protected PhpNamespace &$namespace,
         protected ClassLike &$classLike,
         protected TableRelations $relations, // we should really have a Relations class here
         protected string $modelNamespaceString
     ) {
+        // we keep track of the relation names,
+        // it could happen that there are duplicates...
+        // in that case, we will just add a number to the function name
+        $this->relationsMap = [];
     }
 
     public function handle()
@@ -40,6 +45,8 @@ class RelationsGenerator
         /** @var HasOneRelation $relation */
         foreach($hasOneRules as $relation) {
 
+            $functionName = $this->getUniqueFunctionName($relation->getFunctionName());
+
             $body = sprintf(
                 'return $this->hasOne(%s::class, \'%s\', \'%s\');',
                 $relation->getEntityClass(),
@@ -48,7 +55,7 @@ class RelationsGenerator
             );
 
             $this->classLike
-                ->addMethod($relation->getFunctionName())
+                ->addMethod($functionName)
                 ->addBody($body);
 
             $this->namespace->addUse($this->modelNamespaceString . "\\" . $relation->getEntityClass());
@@ -62,6 +69,8 @@ class RelationsGenerator
         /** @var BelongsToManyRelation $relation */
         foreach($belongsToManyRules as $relation) {
 
+            $functionName = $this->getUniqueFunctionName($relation->getFunctionName());
+
             $body = sprintf(
                 'return $this->belongsToMany(%s::class, \'%s\', \'%s\', \'%s\');',
                 $relation->getEntityClass(),
@@ -71,7 +80,7 @@ class RelationsGenerator
             );
 
             $this->classLike
-                ->addMethod($relation->getFunctionName())
+                ->addMethod($functionName)
                 ->addBody($body);
 
             $this->namespace->addUse($this->modelNamespaceString . "\\" . $relation->getEntityClass());
@@ -85,6 +94,8 @@ class RelationsGenerator
         /** @var HasManyRelation $relation */
         foreach($hasManyRules as $relation) {
 
+            $functionName = $this->getUniqueFunctionName($relation->getFunctionName());
+
             $body = sprintf(
                 'return $this->hasMany(%s::class, \'%s\', \'%s\');',
                 $relation->getEntityClass(),
@@ -93,7 +104,7 @@ class RelationsGenerator
             );
 
             $this->classLike
-                ->addMethod($relation->getFunctionName())
+                ->addMethod($functionName)
                 ->addBody($body);
 
             $this->namespace->addUse($this->modelNamespaceString . "\\" . $relation->getEntityClass());
@@ -107,6 +118,8 @@ class RelationsGenerator
         /** @var BelongsToRelation $relation */
         foreach($belongsToRules as $relation) {
 
+            $functionName = $this->getUniqueFunctionName($relation->getFunctionName());
+
             $body = sprintf(
                 'return $this->belongsTo(%s::class, \'%s\', \'%s\');',
                 $relation->getEntityClass(),
@@ -115,10 +128,32 @@ class RelationsGenerator
             );
 
             $this->classLike
-                ->addMethod($relation->getFunctionName())
+                ->addMethod($functionName)
                 ->addBody($body);
 
             $this->namespace->addUse($this->modelNamespaceString . "\\" . $relation->getEntityClass());
         }
+    }
+
+    private function getUniqueFunctionName(string $functionName): string
+    {
+        if (isset($this->relationsMap[$functionName])) {
+            $foundUnique = false;
+            $counter = 1;
+
+            while(!$foundUnique) {
+                ++$counter;
+
+                $newFunctionName = $functionName . $counter;
+
+                if (!isset($this->relationsMap[$newFunctionName])) {
+                    $functionName = $newFunctionName;
+                    $foundUnique = true;
+                }
+            }
+        }
+
+        $this->relationsMap[$functionName] = true;
+        return $functionName;
     }
 }
