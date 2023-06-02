@@ -5,6 +5,7 @@ namespace Pepijnolivier\EloquentModelGenerator\Commands;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use KitLoong\MigrationsGenerator\Enum\Driver;
 use KitLoong\MigrationsGenerator\Schema\MySQLSchema;
 use KitLoong\MigrationsGenerator\Schema\PgSQLSchema;
@@ -21,6 +22,7 @@ class EloquentModelGeneratorCommand extends Command
 
     private Schema $schema;
     private RelationsParser $parser;
+    private Generator $generator;
 
     public function handle(): int
     {
@@ -41,8 +43,8 @@ class EloquentModelGeneratorCommand extends Command
             try {
                 $this->generator->handle($table);
             } catch(\Exception $e) {
+                Log::error($e->getMessage());
                 $this->error("\nFailed to generate model for table $table");
-                return;
             }
         }
     }
