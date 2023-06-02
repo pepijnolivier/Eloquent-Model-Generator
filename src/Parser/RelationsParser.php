@@ -91,11 +91,13 @@ class RelationsParser
         $foreignColumns = $fk->getForeignColumns();
 
         if(count($localColumns) > 1) {
-            throw new \Exception('Composite local keys are not supported');
+            // throw new \Exception('Composite local keys are not supported');
+            return;
         }
 
         if(count($foreignColumns) > 1) {
-            throw new \Exception('Composite foreign columns are not supported');
+            // throw new \Exception('Composite foreign columns are not supported');
+            return;
         }
 
         $field = $localColumns[0];
@@ -137,11 +139,13 @@ class RelationsParser
         $foreignColumns = $fk->getForeignColumns();
 
         if(count($localColumns) > 1) {
-            throw new \Exception('Composite local keys are not supported');
+            // throw new \Exception('Composite local keys are not supported');
+            return;
         }
 
         if(count($foreignColumns) > 1) {
-            throw new \Exception('Composite foreign columns are not supported');
+            // throw new \Exception('Composite foreign columns are not supported');
+            return;
         }
 
         // switched ????
@@ -189,7 +193,8 @@ class RelationsParser
         $fk2 = $foreign[1];
 
         if((count($fk1->getLocalColumns()) > 1) || (count($fk2->getLocalColumns()) > 1)) {
-            throw new \Exception('Composite primary keys are not supported');
+            // throw new \Exception('Composite primary keys are not supported');
+            return;
         }
 
         $fk1Table = $fk1->getForeignTableName();
@@ -236,11 +241,13 @@ class RelationsParser
             $foreignColumns = $fk->getLocalColumns();
 
             if(count($primaryColumns) > 1) {
-                throw new \Exception('Composite primary keys are not supported');
+                // throw new \Exception('Composite primary keys are not supported');
+                return false;
             }
 
             if(count($foreignColumns) > 1) {
-                throw new \Exception('Composite foreign keys are not supported');
+                // throw new \Exception('Composite foreign keys are not supported');
+                return false;
             }
 
             $primaryKeyColumn = $primaryColumns[0];
