@@ -10,3 +10,5 @@
 - config automatically excludes tables to proces (migrations, etc)
 - consider relations less verbose if automatically detectable via column names
 
+
+- HasManyRelations etc ~> ctor arguments are nullable for now but shouldnt be because relations generator expects them present

@@ -6,6 +6,7 @@ use KitLoong\MigrationsGenerator\Enum\Migrations\Method\IndexType;
 use KitLoong\MigrationsGenerator\Schema\Models\ForeignKey;
 use KitLoong\MigrationsGenerator\Schema\Models\Index;
 use KitLoong\MigrationsGenerator\Schema\Schema;
+use Pepijnolivier\EloquentModelGenerator\Relations\SchemaRelations;
 use Pepijnolivier\EloquentModelGenerator\Relations\TableRelations;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToRelation;
@@ -18,42 +19,38 @@ class RelationsParser
     /** @var Schema $schema */
     protected Schema $schema;
 
-    /** @var TableRelations[] $relationsPerTable */
-    private array $relationsPerTable;
+    /** @var String[] $tables */
+    protected array $tables;
+
+    /** @var SchemaRelations $schemaRelations */
+    protected SchemaRelations $schemaRelations;
 
     use HelperTrait;
 
     public function __construct(Schema $schema)
     {
         $this->schema = $schema;
-        $this->relationsPerTable = $this->parse();
+
+        $this->init();
+
+        $this->parse();
     }
 
-    public function getRelationsForTable(string $table): ?TableRelations
-    {
-        return $this->relationsPerTable[$table] ?? null;
+    protected function init() {
+        $this->tables = $this->schema->getTableNames()->toArray();
+        $this->schemaRelations = new SchemaRelations($this->tables);
     }
+    
 
-    /** @return TableRelations[] */
-    public function getRelationsPerTable(): array
+    public function getSchema(): SchemaRelations
     {
-        return $this->relationsPerTable;
+        return $this->schemaRelations;
     }
 
     private function parse()
     {
-        $tables = $this->schema->getTableNames();
-
-        /** @var TableRelations[] $relationsByTable */
-        $relationsByTable = [];
-
-        // first create empty ruleset for each table
-        foreach ($tables as $tableName) {
-            $relationsByTable[$tableName] = new TableRelations($tableName);
-        }
-
         /** @var string $tableName */
-        foreach ($tables as $tableName) {
+        foreach ($this->tables as $tableName) {
             $table = $this->schema->getTable($tableName);
             $foreign = $this->getForeignKeysForTable($tableName);
             $primary = $this->getPrimaryKeysForTable($tableName);
@@ -62,69 +59,69 @@ class RelationsParser
             $isManyToMany = $this->isManyToManyTable($tableName);
 
             if ($isManyToMany === true) {
-                $this->addManyToManyRelations($tableName, $relationsByTable);
+                $this->addManyToManyRelations($tableName);
             }
 
             foreach ($foreign as $fk) {
                 $isOneToOne = $this->isOneToOne($fk, $primary);
 
                 if ($isOneToOne) {
-                    $this->addOneToOneRules($tableName, $fk, $relationsByTable);
+                    $this->addOneToOneRules($tableName, $fk);
                 } else {
-                    $this->addOneToManyRules($tableName, $fk, $relationsByTable);
+                    $this->addOneToManyRules($tableName, $fk);
                 }
             }
         }
-
-        return $relationsByTable;
     }
 
-    private function addOneToManyRules(string $tableName, ForeignKey $fk, array &$relationsByTable)
+    /**
+     * @var TableRelations[] $relationsByTable
+     */
+    private function addOneToManyRules(string $tableName, ForeignKey $fk)
     {
-        // $table belongs to $FK
+        // $tableName belongs to $FK
         // FK hasMany $table
 
         $tableNames = $this->schema->getTableNames()->toArray();
         $fkTable = $fk->getForeignTableName();
 
-        $localColumns = $fk->getLocalColumns();
-        $foreignColumns = $fk->getForeignColumns();
-
-        if(count($localColumns) > 1) {
-            // throw new \Exception('Composite local keys are not supported');
+        // validate: ensure there's exactly 1 local and 1 foreign column
+        $isComposite = $this->hasCompositeLocalOrForeignColumn($fk);
+        if(!$isComposite) {
             return;
         }
 
-        if(count($foreignColumns) > 1) {
-            // throw new \Exception('Composite foreign columns are not supported');
-            return;
-        }
-
-        $field = $localColumns[0];
-        $references = $foreignColumns[0];
+        $fkLocalColumn = $fk->getLocalColumns()[0];
+        $fkForeignColumn = $fk->getForeignColumns()[0];
 
         if(in_array($fkTable, $tableNames)) {
-            $hasManyModel = $this->generateModelNameFromTableName($tableName);
-            $hasManyFunctionName = $this->getPluralFunctionName($hasManyModel);
-
             // @toconsider: if it's a table with only 2 columns, and they are both the FK
             // then it's just a pure pivot table. We might not want to add a relation for that.
-
-            $relation = new HasManyRelation($hasManyFunctionName, $hasManyModel, $field, $references);
-
-            /** @var TableRelations $tableRelations */
-            $tableRelations = $relationsByTable[$fkTable];
-            $tableRelations->addHasManyRelation($relation);
+            $relation = HasManyRelation::fromTable($tableName, $fkLocalColumn, $fkForeignColumn);
+            $this->schemaRelations->addHasManyRelation($fkTable, $relation);
         }
         if(in_array($tableName, $tableNames)) {
-            $belongsToModel = $this->generateModelNameFromTableName($fkTable);
-            $belongsToFunctionName = $this->getSingularFunctionName($belongsToModel);
-            $relation = new BelongsToRelation($belongsToFunctionName, $belongsToModel, $field, $references);
-
-            /** @var TableRelations $tableRelations */
-            $tableRelations = $relationsByTable[$tableName];
-            $tableRelations->addBelongsToRelation($relation);
+            $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
+            $this->schemaRelations->addBelongsToRelation($tableName, $relation);
         }
+    }
+
+    private function hasCompositeLocalOrForeignColumn(ForeignKey $fk) {
+
+        $fkLocalColumns = $fk->getLocalColumns();
+        $fkForeignColumns = $fk->getForeignColumns();
+
+        if(count($fkLocalColumns) > 1) {
+            // throw new \Exception('Composite local keys are not supported');
+            return true;
+        }
+
+        if(count($fkForeignColumns) > 1) {
+            // throw new \Exception('Composite foreign columns are not supported');
+            return true;
+        }
+
+        return false;
     }
 
     private function addOneToOneRules(string $tableName, ForeignKey $fk, array &$relationsByTable)
@@ -133,43 +130,27 @@ class RelationsParser
         //$FK hasOne $table
 
         $tableNames = $this->schema->getTableNames()->toArray();
-
         $fkTable = $fk->getForeignTableName();
-        $localColumns = $fk->getLocalColumns();
-        $foreignColumns = $fk->getForeignColumns();
 
-        if(count($localColumns) > 1) {
-            // throw new \Exception('Composite local keys are not supported');
+        // validate: ensure there's exactly 1 local and 1 foreign column
+        $isComposite = $this->hasCompositeLocalOrForeignColumn($fk);
+        if(!$isComposite) {
             return;
         }
 
-        if(count($foreignColumns) > 1) {
-            // throw new \Exception('Composite foreign columns are not supported');
-            return;
-        }
-
-        // switched ????
-        $field = $localColumns[0];
-        $references = $foreignColumns[0];
+        $fkLocalColumn = $fk->getLocalColumns()[0];
+        $fkForeignColumn = $fk->getForeignColumns()[0];
 
         if(in_array($fkTable, $tableNames)) {
-            $modelName = $this->generateModelNameFromTableName($tableName);
-            $functionName = $this->getSingularFunctionName($modelName);
 
-            $relation = new HasOneRelation($functionName, $modelName, $field, $references);
-
-            /** @var TableRelations $tableRelations */
-            $tableRelations = $relationsByTable[$fkTable];
-            $tableRelations->addHasOneRelation($relation);
+            $relation = HasOneRelation::fromTable($tableName, $fkLocalColumn, $fkForeignColumn);
+            $this->schemaRelations->addHasOneRelation($fkTable, $relation);
         }
         if(in_array($tableName, $tableNames)) {
-            $belongsToModel = $this->generateModelNameFromTableName($fkTable);
-            $belongsToFunctionName = $this->getSingularFunctionName($belongsToModel);
-            $relation = new BelongsToRelation($belongsToFunctionName, $belongsToModel, $field, $references);
 
-            /** @var TableRelations $tableRelations */
-            $tableRelations = $relationsByTable[$tableName];
-            $tableRelations->addBelongsToRelation($relation);
+            $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
+            $this->schemaRelations->addBelongsToRelation($tableName, $relation);
+
         }
     }
 

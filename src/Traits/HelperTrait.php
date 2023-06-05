@@ -6,19 +6,19 @@ use Illuminate\Support\Str;
 
 trait HelperTrait {
 
-    protected function getPluralFunctionName($modelName)
+    protected static function getPluralFunctionName($modelName)
     {
         $modelName = lcfirst($modelName);
         return Str::plural($modelName);
     }
 
-    protected function getSingularFunctionName($modelName)
+    protected static function getSingularFunctionName($modelName)
     {
         $modelName = lcfirst($modelName);
         return Str::singular($modelName);
     }
 
-    protected function generateModelNameFromTableName($table)
+    protected static function generateModelNameFromTableName($table)
     {
         return ucfirst(Str::camel(Str::singular($table)));
     }
