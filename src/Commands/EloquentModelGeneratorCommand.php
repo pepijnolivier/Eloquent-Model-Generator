@@ -63,16 +63,16 @@ class EloquentModelGeneratorCommand extends Command
         }
 
         switch ($driver) {
-            case Driver::MYSQL():
+            case Driver::MYSQL->value:
                 return $this->schema = app(MySQLSchema::class);
 
-            case Driver::PGSQL():
+            case Driver::PGSQL->value:
                 return $this->schema = app(PgSQLSchema::class);
 
-            case Driver::SQLITE():
+            case Driver::SQLITE->value:
                 return $this->schema = app(SQLiteSchema::class);
 
-            case Driver::SQLSRV():
+            case Driver::SQLSRV->value:
                 return $this->schema = app(SQLSrvSchema::class);
 
             default:
