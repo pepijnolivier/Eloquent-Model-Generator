@@ -43,6 +43,11 @@ class RelationsParser
         $this->schemaRelations = new SchemaRelations($this->tables);
     }
 
+    public function getRelationsForTable(string $tableName): TableRelations
+    {
+        return $this->schemaRelations->getTableRelations($tableName);
+    }
+
 
     public function getSchema(): SchemaRelations
     {

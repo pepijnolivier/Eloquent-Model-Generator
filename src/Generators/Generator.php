@@ -23,7 +23,7 @@ class Generator
     }
 
 
-    private function generateModelAndTrait(string $tableName, TableRelations $relations=null)
+    private function generateModelAndTrait(string $tableName, ?TableRelations $relations = null)
     {
         $modelName = $this->generateModelNameFromTableName($tableName);
         $traitName = "Has{$modelName}Relations";
