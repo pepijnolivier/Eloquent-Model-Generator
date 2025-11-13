@@ -2,10 +2,10 @@
 first todo = properly define todo's in milestones
 
 3.1.1
-- release early version as pre-release asap
-- add connection prop to model !
-- add guarded prop to model ! (only empty / AI-fk)
 
+- OK add connection prop to model !
+- OK add guarded prop to model ! (only empty / AI-fk)
+- release early version as pre-release asap
 
 
 3.1.2
