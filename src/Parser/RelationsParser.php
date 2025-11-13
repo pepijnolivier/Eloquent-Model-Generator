@@ -66,9 +66,7 @@ class RelationsParser
             $isManyToMany = $this->isManyToManyTable($tableName);
 
             if ($isManyToMany === true) {
-
                 $relationsByTable = $this->schemaRelations->getSchemaRelations();
-
                 $this->addManyToManyRelations($tableName, $relationsByTable);
             }
 
@@ -135,7 +133,7 @@ class RelationsParser
         return false;
     }
 
-    private function addOneToOneRules(string $tableName, ForeignKey $fk, array &$relationsByTable)
+    private function addOneToOneRules(string $tableName, ForeignKey $fk)
     {
         //$table belongsTo $FK
         //$FK hasOne $table
@@ -220,7 +218,7 @@ class RelationsParser
     }
 
     //if FK is also a primary key, and there is only one primary key, we know this will be a one to one relationship
-    private function isOneToOne(ForeignKey $fk, Collection $primary)
+    private function isOneToOne(ForeignKey $fk, Collection $primary): bool
     {
         if (count($primary) !== 1) {
             return false;
@@ -246,11 +244,11 @@ class RelationsParser
             $foreignKeyColumn = $foreignColumns[0];
 
             if ($primaryKeyColumn === $foreignKeyColumn) {
-                // dd($primaryKeyColumn, $foreignKeyColumn, $prim, $fk);
-                // dd($fk, $primary);
                 return true;
             }
         }
+
+        return false;
     }
 
     // does this table have exactly two foreign keys that are
@@ -321,7 +319,7 @@ class RelationsParser
     {
         $table = $this->schema->getTable($tableName);
         $primaryKeys = $table->getIndexes()->filter(function($index) {
-            return $index->getType() == IndexType::PRIMARY->value;
+            return $index->getType() == IndexType::PRIMARY;
         });
 
         return $primaryKeys;
