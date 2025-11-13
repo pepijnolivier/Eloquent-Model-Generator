@@ -97,9 +97,10 @@ class RelationsParser
 
         // validate: ensure there's exactly 1 local and 1 foreign column
         $isComposite = $this->hasCompositeLocalOrForeignColumn($fk);
-        if(!$isComposite) {
+        if($isComposite) {
             return;
         }
+
 
         $fkLocalColumn = $fk->getLocalColumns()[0];
         $fkForeignColumn = $fk->getForeignColumns()[0];
@@ -116,7 +117,7 @@ class RelationsParser
         }
     }
 
-    private function hasCompositeLocalOrForeignColumn(ForeignKey $fk) {
+    private function hasCompositeLocalOrForeignColumn(ForeignKey $fk): bool {
 
         $fkLocalColumns = $fk->getLocalColumns();
         $fkForeignColumns = $fk->getForeignColumns();
@@ -144,7 +145,7 @@ class RelationsParser
 
         // validate: ensure there's exactly 1 local and 1 foreign column
         $isComposite = $this->hasCompositeLocalOrForeignColumn($fk);
-        if(!$isComposite) {
+        if($isComposite) {
             return;
         }
 
