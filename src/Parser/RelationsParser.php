@@ -16,6 +16,9 @@ use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
 
 class RelationsParser
 {
+    use HelperTrait;
+
+
     /** @var Schema $schema */
     protected Schema $schema;
 
@@ -25,7 +28,6 @@ class RelationsParser
     /** @var SchemaRelations $schemaRelations */
     protected SchemaRelations $schemaRelations;
 
-    use HelperTrait;
 
     public function __construct(Schema $schema)
     {
