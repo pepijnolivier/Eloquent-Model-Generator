@@ -3,6 +3,7 @@
 namespace Pepijnolivier\EloquentModelGenerator\Commands;
 
 use Exception;
+use RuntimeException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,10 +15,13 @@ use KitLoong\MigrationsGenerator\Schema\SQLiteSchema;
 use KitLoong\MigrationsGenerator\Schema\SQLSrvSchema;
 use Pepijnolivier\EloquentModelGenerator\Generators\Generator;
 use Pepijnolivier\EloquentModelGenerator\Parser\RelationsParser;
+use Pepijnolivier\EloquentModelGenerator\Traits\UseDatabaseConnection;
 
 class EloquentModelGeneratorCommand extends Command
 {
-    public $signature = 'generate:models';
+    use UseDatabaseConnection;
+
+    public $signature = 'generate:models {--connection= : The database connection to use}';
     public $description = 'Generate models from the database with relations.';
 
     private Schema $schema;
@@ -26,11 +30,16 @@ class EloquentModelGeneratorCommand extends Command
 
     public function handle(): int
     {
-        $this->schema = $this->getSchema();
-        $this->parser = new RelationsParser($this->schema);
-        $this->generator = new Generator($this->schema, $this->parser);
+        $connection = $this->option('connection') ?? config('database.default');
+        self::validateConnection($connection);
 
-        $this->generate();
+        self::usingDatabaseConnection($connection, function() {
+            $this->schema = $this->getSchema();
+            $this->parser = new RelationsParser($this->schema);
+            $this->generator = new Generator($this->schema, $this->parser);
+
+            $this->generate();
+        });
 
         $this->info('All done');
         return self::SUCCESS;
@@ -50,7 +59,7 @@ class EloquentModelGeneratorCommand extends Command
     }
 
     /**
-     * Get DB schema by the database connection name.
+     * Get DB schema
      *
      * @throws \Exception
      */
@@ -79,4 +88,5 @@ class EloquentModelGeneratorCommand extends Command
                 throw new Exception('The database driver in use is not supported.');
         }
     }
+
 }
