@@ -1,6 +1,7 @@
 <?php
 
 namespace Pepijnolivier\EloquentModelGenerator\Parser;
+
 use Illuminate\Support\Collection;
 use KitLoong\MigrationsGenerator\Enum\Migrations\Method\IndexType;
 use KitLoong\MigrationsGenerator\Schema\Models\ForeignKey;
@@ -28,7 +29,6 @@ class RelationsParser
     /** @var SchemaRelations $schemaRelations */
     protected SchemaRelations $schemaRelations;
 
-
     public function __construct(Schema $schema)
     {
         $this->schema = $schema;
@@ -42,7 +42,7 @@ class RelationsParser
         $this->tables = $this->schema->getTableNames()->toArray();
         $this->schemaRelations = new SchemaRelations($this->tables);
     }
-    
+
 
     public function getSchema(): SchemaRelations
     {
