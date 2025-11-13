@@ -13,11 +13,11 @@ trait UseDatabaseConnection {
         $originalConnection = config('database.default');
 
         try {
-            Config::set('database.connection', $connection);
+            Config::set('database.default', $connection);
 
             $fn();
         } finally {
-            Config::set('database.connection', $originalConnection);
+            Config::set('database.default', $originalConnection);
         }
     }
 
