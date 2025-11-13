@@ -301,7 +301,7 @@ class RelationsParser
      */
     private function getForeignKeysForTable(string $tableName): Collection
     {
-        return $this->schema->getTableForeignKeys($tableName);
+        return $this->schema->getForeignKeys($tableName);
     }
 
     /**
