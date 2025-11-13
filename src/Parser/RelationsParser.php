@@ -312,7 +312,7 @@ class RelationsParser
     {
         $table = $this->schema->getTable($tableName);
         $primaryKeys = $table->getIndexes()->filter(function($index) {
-            return $index->getType() == IndexType::PRIMARY();
+            return $index->getType() == IndexType::PRIMARY->value;
         });
 
         return $primaryKeys;
