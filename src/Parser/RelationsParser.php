@@ -66,7 +66,10 @@ class RelationsParser
             $isManyToMany = $this->isManyToManyTable($tableName);
 
             if ($isManyToMany === true) {
-                $this->addManyToManyRelations($tableName);
+
+                $relationsByTable = $this->schemaRelations->getSchemaRelations();
+
+                $this->addManyToManyRelations($tableName, $relationsByTable);
             }
 
             foreach ($foreign as $fk) {

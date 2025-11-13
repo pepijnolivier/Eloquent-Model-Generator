@@ -22,13 +22,20 @@ class SchemaRelations
     }
 
     protected function init() {
-        foreach($this->tableNames as $tableName) {
+        foreach ($this->tableNames as $tableName) {
             $this->relations[$tableName] = new TableRelations($tableName);
         }
     }
 
+    /**
+     * @return TableRelations[]
+     */
+    public function getSchemaRelations(): array {
+        return $this->relations;
+    }
+
     public function getTableRelations(string $table): TableRelations {
-        $this->throwIfInValidTable($table);
+        $this->throwIfInvalidTable($table);
         return $this->relations[$table];
     }
 
