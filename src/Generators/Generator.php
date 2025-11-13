@@ -13,6 +13,7 @@ class Generator
 
 
     public function __construct(
+        protected string $connection,
         protected Schema $schema,
         protected RelationsParser $parser
     ) { }
@@ -23,7 +24,7 @@ class Generator
     }
 
 
-    private function generateModelAndTrait(string $tableName, TableRelations $relations=null)
+    private function generateModelAndTrait(string $tableName, ?TableRelations $relations = null)
     {
         $modelName = $this->generateModelNameFromTableName($tableName);
         $traitName = "Has{$modelName}Relations";
@@ -32,6 +33,7 @@ class Generator
         $this->createFolderIfNotExists($modelFolder);
 
         [$modelFile, $modelClass] = (new ModelGenerator(
+            $this->connection,
             $modelName,
             $this->getModelNamespaceString()
         ))->handle();

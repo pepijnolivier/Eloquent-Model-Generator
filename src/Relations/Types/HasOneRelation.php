@@ -2,8 +2,18 @@
 
 namespace Pepijnolivier\EloquentModelGenerator\Relations\Types;
 
+use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
+
 class HasOneRelation
 {
+    use HelperTrait;
+
+    public static function fromTable(string $tableName, string $foreignKey, string $localKey): HasOneRelation {
+        $modelName = self::generateModelNameFromTableName($tableName);
+        $functionName = self::getSingularFunctionName($modelName);
+        return new self($functionName, $modelName, $foreignKey, $localKey);
+    }
+
     public function __construct(
         protected string $functionName,
         protected string $entityClass,

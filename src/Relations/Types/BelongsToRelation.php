@@ -2,8 +2,19 @@
 
 namespace Pepijnolivier\EloquentModelGenerator\Relations\Types;
 
+use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
+
 class BelongsToRelation
 {
+    use HelperTrait;
+
+    public static function fromTable(string $fkTable, string $fkLocalColumn, string $fkForeignColumn) {
+        $belongsToModel = self::generateModelNameFromTableName($fkTable);
+        $belongsToFunctionName = self::getSingularFunctionName($belongsToModel);
+
+        return new self($belongsToFunctionName, $belongsToModel, $fkLocalColumn, $fkForeignColumn);
+    }
+
     public function __construct(
         protected string $functionName,
         protected string $entityClass,

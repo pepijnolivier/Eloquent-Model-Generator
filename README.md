@@ -14,8 +14,8 @@ For automatically generating database migrations for your schema, see [kitloong/
 
 ## Requirements
 
-- PHP 8.1+
-- Laravel 8+
+- PHP 8.4+
+- Laravel 12+
 
 ## Installation
 
