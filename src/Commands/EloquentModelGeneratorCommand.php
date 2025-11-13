@@ -33,10 +33,10 @@ class EloquentModelGeneratorCommand extends Command
         $connection = $this->option('connection') ?? config('database.default');
         self::validateConnection($connection);
 
-        self::usingDatabaseConnection($connection, function() {
+        self::usingDatabaseConnection($connection, function() use ($connection) {
             $this->schema = $this->getSchema();
             $this->parser = new RelationsParser($this->schema);
-            $this->generator = new Generator($this->schema, $this->parser);
+            $this->generator = new Generator($connection, $this->schema, $this->parser);
 
             $this->generate();
         });

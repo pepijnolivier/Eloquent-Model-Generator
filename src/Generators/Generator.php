@@ -13,6 +13,7 @@ class Generator
 
 
     public function __construct(
+        protected string $connection,
         protected Schema $schema,
         protected RelationsParser $parser
     ) { }
@@ -32,6 +33,7 @@ class Generator
         $this->createFolderIfNotExists($modelFolder);
 
         [$modelFile, $modelClass] = (new ModelGenerator(
+            $this->connection,
             $modelName,
             $this->getModelNamespaceString()
         ))->handle();
