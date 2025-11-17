@@ -24,13 +24,11 @@ class ModelGenerator
         // Set the model to use the specified connection
         $connectionProperty = $modelClass->addProperty('connection', $this->connection)
             ->setProtected()
-            ->setType('string')
             ->setValue($this->connection);
 
         // add the "guarded" property as an empty array
         $modelClass->addProperty('guarded', [])
             ->setProtected()
-            ->setType('array')
             ->setValue([]);
 
         $modelClass
