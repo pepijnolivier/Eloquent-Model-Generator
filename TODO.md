@@ -21,6 +21,8 @@ first todo = properly define todo's in milestones
 - softdeletes
 
 
+- Consider naming functions: (example: nxtpay has contracts.employment_city_id, but the generated belongsTo function is named "city" - where we might expect "employmentCity" instead)
+
 3.1.3
 
 - detect and thus require the config file to be published in the app/config directory
