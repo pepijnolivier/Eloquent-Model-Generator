@@ -14,10 +14,14 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
 use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
+use Pepijnolivier\EloquentModelGenerator\Traits\OutputsToConsole;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class RelationsParser
 {
     use HelperTrait;
+    use OutputsToConsole;
 
 
     /** @var Schema $schema */
@@ -38,7 +42,11 @@ class RelationsParser
         $this->parse();
     }
 
+
     protected function init() {
+
+        $this->comment("[RelationsParser] initializing");
+
         $this->tables = $this->schema->getTableNames()->toArray();
         $this->schemaRelations = new SchemaRelations($this->tables);
     }
@@ -56,30 +64,44 @@ class RelationsParser
 
     private function parse()
     {
-        /** @var string $tableName */
-        foreach ($this->tables as $tableName) {
-            $table = $this->schema->getTable($tableName);
-            $foreign = $this->getForeignKeysForTable($tableName);
-            $primary = $this->getPrimaryKeysForTable($tableName);
 
-            // @improvement we should probably pass in the table everywhere, instead of the table name...
-            $isManyToMany = $this->isManyToManyTable($tableName);
+        $this->comment("[RelationsParser] parsing");
 
-            if ($isManyToMany === true) {
-                $relationsByTable = $this->schemaRelations->getSchemaRelations();
-                $this->addManyToManyRelations($tableName, $relationsByTable);
+        $count = count($this->tables);
+        $this->usingProgressbar($count, function (ProgressBar $progressBar) {
+            /** @var string $tableName */
+            foreach ($this->tables as $index => $tableName) {
+                // for some reason, some loop iterations are very, very slow
+                $this->parseTable($tableName, $progressBar);
             }
+        });
+    }
 
-            foreach ($foreign as $fk) {
-                $isOneToOne = $this->isOneToOne($fk, $primary);
+    protected function parseTable(string $tableName, ProgressBar $progressBar)
+    {
+        $table = $this->schema->getTable($tableName);
+        $foreign = $this->getForeignKeysForTable($tableName);
+        $primary = $this->getPrimaryKeysForTable($tableName);
 
-                if ($isOneToOne) {
-                    $this->addOneToOneRules($tableName, $fk);
-                } else {
-                    $this->addOneToManyRules($tableName, $fk);
-                }
+        // @improvement we should probably pass in the table everywhere, instead of the table name...
+        $isManyToMany = $this->isManyToManyTable($tableName);
+
+        if ($isManyToMany === true) {
+            $relationsByTable = $this->schemaRelations->getSchemaRelations();
+            $this->addManyToManyRelations($tableName, $relationsByTable);
+        }
+
+        foreach ($foreign as $fk) {
+            $isOneToOne = $this->isOneToOne($fk, $primary);
+
+            if ($isOneToOne) {
+                $this->addOneToOneRules($tableName, $fk);
+            } else {
+                $this->addOneToManyRules($tableName, $fk);
             }
         }
+
+        $progressBar->advance();
     }
 
     /**
@@ -304,7 +326,7 @@ class RelationsParser
 
     /**
      * @param string $tableName
-     * @return Collection
+     * @return Collection<ForeignKey>
      */
     private function getForeignKeysForTable(string $tableName): Collection
     {
