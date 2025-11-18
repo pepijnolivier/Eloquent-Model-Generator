@@ -7,9 +7,13 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
+use Pepijnolivier\EloquentModelGenerator\Traits\OutputsToConsole;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 class SchemaRelations
 {
+    use OutputsToConsole;
+
     protected array $relations = [];
 
     /**
@@ -22,9 +26,15 @@ class SchemaRelations
     }
 
     protected function init() {
-        foreach ($this->tableNames as $tableName) {
-            $this->relations[$tableName] = new TableRelations($tableName);
-        }
+        $count = count($this->tableNames);
+
+        $this->comment("[SchemaRelations]: Initializing relations ($count)");
+        $this->usingProgressbar($count, function (ProgressBar $progressBar) {
+            foreach ($this->tableNames as $tableName) {
+                $this->relations[$tableName] = new TableRelations($tableName);
+                $progressBar->advance();
+            }
+        });
     }
 
     /**
@@ -64,7 +74,7 @@ class SchemaRelations
     }
 
     protected function throwIfInvalidTable($table) {
-        if(!isset($this->relations[$table])) {
+        if (!isset($this->relations[$table])) {
             throw new \Exception("Unknown table: '$table'");
         }
     }
