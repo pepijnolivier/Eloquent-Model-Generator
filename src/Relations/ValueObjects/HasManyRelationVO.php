@@ -2,7 +2,9 @@
 
 namespace Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects;
 
-class HasManyRelationVO
+use Pepijnolivier\EloquentModelGenerator\Contracts\RelationValueObjectInterface;
+
+class HasManyRelationVO implements RelationValueObjectInterface
 {
 
 }
