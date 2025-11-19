@@ -18,6 +18,7 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
+use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToManyRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasManyRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO;
@@ -248,26 +249,72 @@ class RelationsParser
         $fk2Field = $fk2->getLocalColumns()[0];
 
         if (in_array($fk1Table, $tableNames)) {
-            $belongsToManyModel = $this->generateModelNameFromTableName($fk2Table);
-            $belongsToManyFunctionName = $this->getPluralFunctionName($belongsToManyModel);
-            $through = $tableName;
 
-            $relation = new BelongsToManyRelation($belongsToManyFunctionName, $belongsToManyModel, $through, $fk1Field, $fk2Field);
+
+            if(true) {
+                // old flow
+                $belongsToManyModel = $this->generateModelNameFromTableName($fk2Table);
+                $belongsToManyFunctionName = $this->getPluralFunctionName($belongsToManyModel);
+                $through = $tableName;
+
+
+                $oldRelation = new BelongsToManyRelation($belongsToManyFunctionName, $belongsToManyModel, $through, $fk1Field, $fk2Field);
+
+                /** @var TableRelations $tableRelations */
+                // $tableRelations = $relationsByTable[$fk1Table];
+                // $tableRelations->addBelongsToManyRelation($relation);
+
+
+            }
+
+
+            $vo = new BelongsToManyRelationVO(
+                $this->schema,
+                $this->schemaRelations,
+                $this->namingStrategy,
+                $fk1,
+                $fk2,
+            );
+
+            $table = $fk1->getForeignTableName();
+            $relation = $vo->getRelation();
 
             /** @var TableRelations $tableRelations */
-            $tableRelations = $relationsByTable[$fk1Table];
+            $tableRelations = $relationsByTable[$table];
             $tableRelations->addBelongsToManyRelation($relation);
         }
+
+
+        // todo this one too
         if (in_array($fk2Table, $tableNames)) {
-            $belongsToManyModel = $this->generateModelNameFromTableName($fk1Table);
-            $belongsToManyFunctionName = $this->getPluralFunctionName($belongsToManyModel);
 
-            $through = $tableName;
-            $relation = new BelongsToManyRelation($belongsToManyFunctionName, $belongsToManyModel, $through, $fk2Field, $fk1Field);
+            if(true) {
+                // old flow
+                $belongsToManyModel = $this->generateModelNameFromTableName($fk1Table);
+                $belongsToManyFunctionName = $this->getPluralFunctionName($belongsToManyModel);
 
+                $through = $tableName;
+                $relation = new BelongsToManyRelation($belongsToManyFunctionName, $belongsToManyModel, $through, $fk2Field, $fk1Field);
+
+                /** @var TableRelations $tableRelations */
+                // $tableRelations = $relationsByTable[$fk2Table];
+                // $tableRelations->addBelongsToManyRelation($relation);
+            }
+
+            $vo = new BelongsToManyRelationVO(
+                $this->schema,
+                $this->schemaRelations,
+                $this->namingStrategy,
+                $fk2,
+                $fk1,
+            );
+
+            $table = $fk2->getForeignTableName();
+            $relation = $vo->getRelation();
             /** @var TableRelations $tableRelations */
-            $tableRelations = $relationsByTable[$fk2Table];
+            $tableRelations = $relationsByTable[$table];
             $tableRelations->addBelongsToManyRelation($relation);
+
         }
     }
 
