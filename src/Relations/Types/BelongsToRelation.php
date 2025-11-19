@@ -2,9 +2,10 @@
 
 namespace Pepijnolivier\EloquentModelGenerator\Relations\Types;
 
+use Pepijnolivier\EloquentModelGenerator\Contracts\RelationInterface;
 use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
 
-class BelongsToRelation
+class BelongsToRelation implements RelationInterface
 {
     use HelperTrait;
 
