@@ -19,6 +19,7 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToRelationVO;
+use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasManyRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
 use Pepijnolivier\EloquentModelGenerator\Traits\OutputsToConsole;
@@ -129,23 +130,17 @@ class RelationsParser
         if($isComposite) {
             return;
         }
-
-
-        $fkLocalColumn = $fk->getLocalColumns()[0];
-        $fkForeignColumn = $fk->getForeignColumns()[0];
-
         if(in_array($fkTable, $tableNames)) {
-            // @toconsider: if it's a table with only 2 columns, and they are both the FK
-            // then it's just a pure pivot table. We might not want to add a relation for that.
-            $relation = HasManyRelation::fromTable($tableName, $fkLocalColumn, $fkForeignColumn);
+            $vo = new HasManyRelationVO(
+                $this->schema,
+                $this->schemaRelations,
+                $this->namingStrategy,
+                $fk
+            );
+            $relation = $vo->getRelation();
             $this->schemaRelations->addHasManyRelation($fkTable, $relation);
         }
         if(in_array($tableName, $tableNames)) {
-            // $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
-            // $this->schemaRelations->addBelongsToRelation($tableName, $relation);
-
-
-
             $vo = new BelongsToRelationVO(
                 $this->schema,
                 $this->schemaRelations,
@@ -154,11 +149,7 @@ class RelationsParser
             );
 
             $relation = $vo->getRelation();
-
-
-            // $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
             $this->schemaRelations->addBelongsToRelation($tableName, $relation);
-
         }
     }
 

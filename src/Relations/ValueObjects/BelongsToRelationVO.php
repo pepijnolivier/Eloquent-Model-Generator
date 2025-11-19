@@ -44,9 +44,6 @@ class BelongsToRelationVO implements RelationValueObjectInterface
         $this->fkForeignColumn = $foreignKey->getForeignColumns()[0];
     }
 
-    // -----
-
-
     public function getModelName(): string {
         $tableName = $this->foreignKey->getForeignTableName();
         return $this->namingStrategy::generateModelNameFromTableName($this->schema, $this->relations, $tableName);
