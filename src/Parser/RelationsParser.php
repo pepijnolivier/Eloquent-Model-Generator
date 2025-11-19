@@ -33,9 +33,12 @@ class RelationsParser
     /** @var SchemaRelations $schemaRelations */
     protected SchemaRelations $schemaRelations;
 
+    protected NamingStrategyInterface $namingStrategy;
+
     public function __construct(Schema $schema)
     {
         $this->schema = $schema;
+        $this->namingStrategy = $this->getNamingStrategy();
 
         $this->init();
 
@@ -345,5 +348,20 @@ class RelationsParser
         });
 
         return $primaryKeys;
+    }
+
+    private function getNamingStrategy(): NamingStrategyInterface
+    {
+        $namingStrategyClass = config(
+            'eloquent_model_generator.naming_strategy',
+            LegacyNamingStrategy::class
+        );
+
+        // ensure that this class implements NamingStrategyInterface
+        if (!is_subclass_of($namingStrategyClass, NamingStrategyInterface::class)) {
+            throw new \InvalidArgumentException("Naming strategy class must implement NamingStrategyInterface");
+        }
+
+        return app($namingStrategyClass);
     }
 }
