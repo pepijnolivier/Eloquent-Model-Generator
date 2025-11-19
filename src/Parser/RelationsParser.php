@@ -2,17 +2,23 @@
 
 namespace Pepijnolivier\EloquentModelGenerator\Parser;
 
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use KitLoong\MigrationsGenerator\Enum\Migrations\Method\IndexType;
 use KitLoong\MigrationsGenerator\Schema\Models\ForeignKey;
 use KitLoong\MigrationsGenerator\Schema\Models\Index;
 use KitLoong\MigrationsGenerator\Schema\Schema;
+use Pepijnolivier\EloquentModelGenerator\Contracts\NamingStrategyInterface;
+use Pepijnolivier\EloquentModelGenerator\Factories\Relations\HasOneRelationFactory;
+use Pepijnolivier\EloquentModelGenerator\NamingStrategies\LegacyNamingStrategy;
+// use Pepijnolivier\EloquentModelGenerator\NamingStrategies\ValueObjects\HasOneRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\SchemaRelations;
 use Pepijnolivier\EloquentModelGenerator\Relations\TableRelations;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
+use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
 use Pepijnolivier\EloquentModelGenerator\Traits\OutputsToConsole;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -20,9 +26,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 class RelationsParser
 {
-    use HelperTrait;
     use OutputsToConsole;
-
+    use HelperTrait;
 
     /** @var Schema $schema */
     protected Schema $schema;
@@ -160,8 +165,8 @@ class RelationsParser
 
     private function addOneToOneRules(string $tableName, ForeignKey $fk)
     {
-        //$table belongsTo $FK
-        //$FK hasOne $table
+        // $tableName belongsTo $FK
+        // $FK hasOne $table
 
         $tableNames = $this->schema->getTableNames()->toArray();
         $fkTable = $fk->getForeignTableName();
@@ -175,15 +180,20 @@ class RelationsParser
         $fkLocalColumn = $fk->getLocalColumns()[0];
         $fkForeignColumn = $fk->getForeignColumns()[0];
 
-        if(in_array($fkTable, $tableNames)) {
+        if (in_array($fkTable, $tableNames)) {
+            $vo = new HasOneRelationVO(
+                $this->schema,
+                $this->schemaRelations,
+                $this->namingStrategy,
+                $fk
+            );
 
-            $relation = HasOneRelation::fromTable($tableName, $fkLocalColumn, $fkForeignColumn);
+            $relation = $vo->getRelation();
             $this->schemaRelations->addHasOneRelation($fkTable, $relation);
         }
         if(in_array($tableName, $tableNames)) {
-
-            $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
-            $this->schemaRelations->addBelongsToRelation($tableName, $relation);
+             $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
+             $this->schemaRelations->addBelongsToRelation($tableName, $relation);
 
         }
     }
