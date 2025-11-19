@@ -34,4 +34,8 @@ return [
     |
     */
     'extend' => Model::class,
+
+
+
+    'naming_strategy' => \Pepijnolivier\EloquentModelGenerator\NamingStrategies\LegacyNamingStrategy::class,
 ];
