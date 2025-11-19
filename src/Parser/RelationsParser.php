@@ -18,6 +18,7 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
+use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
 use Pepijnolivier\EloquentModelGenerator\Traits\OutputsToConsole;
@@ -140,8 +141,24 @@ class RelationsParser
             $this->schemaRelations->addHasManyRelation($fkTable, $relation);
         }
         if(in_array($tableName, $tableNames)) {
-            $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
+            // $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
+            // $this->schemaRelations->addBelongsToRelation($tableName, $relation);
+
+
+
+            $vo = new BelongsToRelationVO(
+                $this->schema,
+                $this->schemaRelations,
+                $this->namingStrategy,
+                $fk
+            );
+
+            $relation = $vo->getRelation();
+
+
+            // $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
             $this->schemaRelations->addBelongsToRelation($tableName, $relation);
+
         }
     }
 
@@ -192,7 +209,18 @@ class RelationsParser
             $this->schemaRelations->addHasOneRelation($fkTable, $relation);
         }
         if(in_array($tableName, $tableNames)) {
-             $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
+
+            $vo = new BelongsToRelationVO(
+                $this->schema,
+                $this->schemaRelations,
+                $this->namingStrategy,
+                $fk
+            );
+
+            $relation = $vo->getRelation();
+
+
+             // $relation = BelongsToRelation::fromTable($fkTable, $fkLocalColumn, $fkForeignColumn);
              $this->schemaRelations->addBelongsToRelation($tableName, $relation);
 
         }

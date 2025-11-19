@@ -36,7 +36,13 @@ class LegacyNamingStrategy implements NamingStrategyInterface
 
     public static function generateBelongsToFunctionName(BelongsToRelationVO $vo): string
     {
-        // TODO: Implement generateBelongsToFunctionName() method.
+        $belongsToModel = self::generateModelNameFromTableName(
+            $vo->getSchema(),
+            $vo->getRelations(),
+            $vo->getForeignKey()->getForeignTableName()
+        );
+
+        return self::getSingularFunctionName($belongsToModel);
     }
 
     public static function generateBelongsToManyFunctionName(BelongsToManyRelationVO $vo): string
