@@ -11,7 +11,7 @@ use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO
 
 interface NamingStrategyInterface
 {
-    public static function generateModelNameFromTableName(Schema $schema, SchemaRelations $relations, string $tableName);
+    public static function generateModelNameFromTableName(Schema $schema, SchemaRelations $relations, string $tableName): string;
 
     public static function generateHasOneFunctionName(HasOneRelationVO $vo): string;
 

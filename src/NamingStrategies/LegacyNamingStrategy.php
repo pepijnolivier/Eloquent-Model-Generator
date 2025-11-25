@@ -62,13 +62,13 @@ class LegacyNamingStrategy implements NamingStrategyInterface
         return self::getPluralFunctionName($belongsToManyModel);
     }
 
-    protected static function getPluralFunctionName($modelName): string
+    protected static function getPluralFunctionName(string $modelName): string
     {
         $modelName = lcfirst($modelName);
         return Str::plural($modelName);
     }
 
-    protected static function getSingularFunctionName($modelName): string
+    protected static function getSingularFunctionName(string $modelName): string
     {
         $modelName = lcfirst($modelName);
         return Str::singular($modelName);
