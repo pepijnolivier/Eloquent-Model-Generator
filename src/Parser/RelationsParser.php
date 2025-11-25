@@ -19,7 +19,7 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasManyRelation;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
-use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToManyRelationVO;
+use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\PivotRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasManyRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO;
@@ -250,7 +250,7 @@ class RelationsParser
         $fk2Field = $fk2->getLocalColumns()[0];
 
         if (in_array($fk1Table, $tableNames)) {
-            $vo = new BelongsToManyRelationVO(
+            $vo = new PivotRelationVO(
                 $this->schema,
                 $this->schemaRelations,
                 $this->namingStrategy,
@@ -269,7 +269,7 @@ class RelationsParser
 
         if (in_array($fk2Table, $tableNames)) {
 
-            $vo = new BelongsToManyRelationVO(
+            $vo = new PivotRelationVO(
                 $this->schema,
                 $this->schemaRelations,
                 $this->namingStrategy,

@@ -12,12 +12,13 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToManyRelation;
 /**
  * This Value Object represents a BelongsToMany relation between two models.
  * It actually holds the two foreign keys on the pivot (!) table. (eg user_group)
+ * This is why it has been renamed from BelongsToManyRelationVO to PivotRelationVO
  *
  * The VO is used in the following way:
  * It is created twice, (second time with fk1 and fk2 swapped)
  * This allows us to generate the BelongsToMany relation from both sides using 1 flow of logic.
  */
-class BelongsToManyRelationVO implements RelationValueObjectInterface
+class PivotRelationVO implements RelationValueObjectInterface
 {
     public function __construct(
         protected readonly Schema $schema,

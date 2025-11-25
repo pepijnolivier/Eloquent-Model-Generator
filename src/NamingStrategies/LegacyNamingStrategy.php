@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 use KitLoong\MigrationsGenerator\Schema\Schema;
 use Pepijnolivier\EloquentModelGenerator\Contracts\NamingStrategyInterface;
 use Pepijnolivier\EloquentModelGenerator\Relations\SchemaRelations;
-use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToManyRelationVO;
+use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\PivotRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasManyRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO;
@@ -51,7 +51,7 @@ class LegacyNamingStrategy implements NamingStrategyInterface
         return self::getSingularFunctionName($belongsToModel);
     }
 
-    public static function generateBelongsToManyFunctionName(BelongsToManyRelationVO $vo): string
+    public static function generateBelongsToManyFunctionName(PivotRelationVO $vo): string
     {
         $belongsToManyModel = self::generateModelNameFromTableName(
             $vo->getSchema(),

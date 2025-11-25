@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 use KitLoong\MigrationsGenerator\Schema\Schema;
 use Pepijnolivier\EloquentModelGenerator\Contracts\NamingStrategyInterface;
 use Pepijnolivier\EloquentModelGenerator\Relations\SchemaRelations;
-use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToManyRelationVO;
+use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\PivotRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasManyRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO;
@@ -54,7 +54,7 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
         return LegacyNamingStrategy::generateBelongsToFunctionName($vo);
     }
 
-    public static function generateBelongsToManyFunctionName(BelongsToManyRelationVO $vo): string
+    public static function generateBelongsToManyFunctionName(PivotRelationVO $vo): string
     {
         // eg for table 'users', we have a belongsToMany 'posts' via 'comments' table
         // so the legacy name for this relation would be 'posts'

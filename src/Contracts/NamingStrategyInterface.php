@@ -4,7 +4,7 @@ namespace Pepijnolivier\EloquentModelGenerator\Contracts;
 
 use KitLoong\MigrationsGenerator\Schema\Schema;
 use Pepijnolivier\EloquentModelGenerator\Relations\SchemaRelations;
-use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToManyRelationVO;
+use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\PivotRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\BelongsToRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasManyRelationVO;
 use Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects\HasOneRelationVO;
@@ -19,5 +19,5 @@ interface NamingStrategyInterface
 
     public static function generateBelongsToFunctionName(BelongsToRelationVO $vo): string;
 
-    public static function generateBelongsToManyFunctionName(BelongsToManyRelationVO $vo): string;
+    public static function generateBelongsToManyFunctionName(PivotRelationVO $vo): string;
 }
