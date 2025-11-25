@@ -3,6 +3,7 @@
 namespace Pepijnolivier\EloquentModelGenerator\Parser;
 
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use KitLoong\MigrationsGenerator\Enum\Migrations\Method\IndexType;
 use KitLoong\MigrationsGenerator\Schema\Models\ForeignKey;
@@ -395,11 +396,8 @@ class RelationsParser
 
     private function getNamingStrategy(): NamingStrategyInterface
     {
-        $namingStrategyClass = config(
-            'eloquent_model_generator.naming_strategy',
-            LegacyNamingStrategy::class
-        );
-
+        $cfg = config('eloquent-model-generator');
+        $namingStrategyClass = Arr::get($cfg, 'naming_strategy');
         // ensure that this class implements NamingStrategyInterface
         if (!is_subclass_of($namingStrategyClass, NamingStrategyInterface::class)) {
             throw new \InvalidArgumentException("Naming strategy class must implement NamingStrategyInterface");
