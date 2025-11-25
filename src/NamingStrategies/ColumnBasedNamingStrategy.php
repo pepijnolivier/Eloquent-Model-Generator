@@ -133,19 +133,27 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
     /**
      * Checks if a pivot table follows Laravel's standard naming convention.
      *
-     * Standard pivot tables are named as the concatenation of related tables
+     * Theoretically, standard pivot tables are named as the concatenation of related tables
      * usually in alphabetical order (e.g., post_user for posts and users).
+     *
+     * However in practice, they can be in any order, so we check both combinations.
+     * Also any mix of singular/plural forms is possible, so we account for this too
      */
     protected static function isStandardPivotTable(string $pivotTable, string $modelTable, string $relatedTable): bool
     {
-        $singularModelTable = Str::singular($modelTable);
-        $singularRelatedTable = Str::singular($relatedTable);
+        $mSing = Str::singular($modelTable);
+        $mPlur = Str::plural($modelTable);
+
+        $rSing = Str::singular($relatedTable);
+        $rPlur = Str::plural($relatedTable);
 
         $candidates = [
-            $singularModelTable . '_' . $singularRelatedTable,
-            $singularRelatedTable . '_' . $singularModelTable,
+            "{$mSing}_{$rSing}" => true, "{$rSing}_{$mSing}" => true,
+            "{$mSing}_{$rPlur}" => true, "{$rPlur}_{$mSing}" => true,
+            "{$mPlur}_{$rSing}" => true, "{$rSing}_{$mPlur}" => true,
+            "{$mPlur}_{$rPlur}" => true, "{$rPlur}_{$mPlur}" => true,
         ];
 
-        return in_array($pivotTable, $candidates);
+        return isset($candidates[$pivotTable]);
     }
 }
