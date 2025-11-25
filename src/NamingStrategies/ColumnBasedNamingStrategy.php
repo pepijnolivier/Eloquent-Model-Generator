@@ -24,37 +24,30 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
         return LegacyNamingStrategy::generateHasOneFunctionName($vo);
     }
 
+    /**
+     * Generates hasMany function names based on the foreign key column.
+     *
+     * Examples:
+     * - posts.author_id pointing to "users" table
+     *   → relation on "users" table will be "authoredPosts" (descriptive when column indicates a role)
+     *
+     * - users.nationality_id pointing to "nationalities" table
+     *   → relation on "nationalities" table will be "users" (simple when column matches model name)
+     */
     public static function generateHasManyFunctionName(HasManyRelationVO $vo): string
     {
-        /**
-         * read the foreign key local column
-         * eg if we're currently processing the table "users" and the foreign local column is posts.author_id
-         *
-         * then a good hasMany function name would be "authoredPosts"
-         * This leaves "posts" open for other relations that might exist between users and posts
-         */
-
         $localColumn = $vo->getFkLocalColumn();
 
         if(Str::endsWith($localColumn, '_id')) {
-            // Extract the prefix from the column name (e.g., "author_id" → "author")
             $withoutIdSuffix = Str::remove('_id', $localColumn);
-
-            // Get current model's table name to check if this is a standard reference
             $currentModelTable = $vo->getForeignKey()->getForeignTableName();
             $currentModelSingular = Str::singular($currentModelTable);
-
-            // Get the related table name (e.g., "posts")
             $relatedTable = $vo->getForeignKey()->getTableName();
 
-            // If the column base matches the current model's singular name,
-            // use simple plural to avoid verbosity (e.g., nationality.nationality_id → "users", not "nationalitiedUsers")
             if($withoutIdSuffix === $currentModelSingular) {
                 return Str::camel(Str::plural(Str::singular($relatedTable)));
             }
 
-            // Otherwise, use past participle prefix for more descriptive names
-            // (e.g., posts.author_id → "authoredPosts")
             $prefix = Str::camel(self::pastParticiple($withoutIdSuffix));
             $related = Str::studly(Str::plural(Str::singular($relatedTable)));
 
@@ -64,12 +57,16 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
         return LegacyNamingStrategy::generateHasManyFunctionName($vo);
     }
 
+    /**
+     * Generates belongsTo function names by removing the _id suffix from the foreign key column.
+     *
+     * Example: author_id → "author"
+     */
     public static function generateBelongsToFunctionName(BelongsToRelationVO $vo): string
     {
         $localColumn = $vo->getFkLocalColumn();
 
         if(Str::endsWith($localColumn, '_id')) {
-            // camelcase
             $withoutIdSuffix = Str::remove('_id', $localColumn);
             return Str::camel($withoutIdSuffix);
         }
@@ -77,24 +74,21 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
         return LegacyNamingStrategy::generateBelongsToFunctionName($vo);
     }
 
+    /**
+     * Generates belongsToMany function names that reflect non-standard pivot tables.
+     *
+     * For standard pivot tables (e.g., post_user), falls back to legacy naming.
+     * For non-standard pivot tables, prefixes with the pivot table name in past participle form.
+     *
+     * Example: users → posts via comments → "commentedPosts"
+     */
     public static function generateBelongsToManyFunctionName(PivotRelationVO $vo): string
     {
-        // eg for table 'users', we have a belongsToMany 'posts' via 'comments' table
-        // so the legacy name for this relation would be 'posts'
-        // but we want to reflect the pivot table 'comments' in the name
-        // so a better name would be commentedPosts
-
-        // first, we should detect the name of the pivot table.
-        // if it's a standard pivot table, it will be the concatenation of the two related tables in alphabetical order
-        // if so, we should fallback to the legacy naming strategy
-
-        $fk1 = $vo->getFk1(); // FK to the current model
-        $fk2 = $vo->getFk2(); // FK to the related model
+        $fk1 = $vo->getFk1();
+        $fk2 = $vo->getFk2();
 
         $fk1Table = $fk1->getTableName();
         $fk2Table = $fk2->getForeignTableName();
-
-        // dd($fk1Table, $fk2Table, $fk1->getForeignTableName());
 
         $isStandardPivot = self::isStandardPivotTable(
             pivotTable: $fk1Table,
@@ -106,60 +100,42 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
             return LegacyNamingStrategy::generateBelongsToManyFunctionName($vo);
         }
 
-
-
-        // if it's not a standard pivot table, eg "users > comments > posts"
-        // and we are processing the users table
-        // then we can use the pivot table name 'comments' as a prefix for the relation
-        // so the relation name becomes 'commentedPosts'
-
-
-        $pivotTableName = $fk1Table; // eg 'comments'
+        $pivotTableName = $fk1Table;
         $relatedTable = $fk2->getForeignTableName();
-
-        $pivotSingular = Str::singular($pivotTableName);   // 'comments' → 'comment'
-
+        $pivotSingular = Str::singular($pivotTableName);
         $prefix = Str::camel(self::pastParticiple($pivotSingular));
+        $related = Str::studly(Str::plural(Str::singular($relatedTable)));
 
-        $related = Str::studly(Str::plural(Str::singular($relatedTable))); // 'Posts'
-
-        return lcfirst($prefix . $related);  // 'commentedPosts'
+        return lcfirst($prefix . $related);
     }
-
-    protected static function getPluralFunctionName(string $modelName): string
-    {
-        $modelName = lcfirst($modelName);
-        return Str::plural($modelName);
-    }
-
-    protected static function getSingularFunctionName(string $modelName): string
-    {
-        $modelName = lcfirst($modelName);
-        return Str::singular($modelName);
-    }
-
 
     /**
-     * This doesn’t try to be grammatically perfect—just predictable.
-     * For most pivot tables (“comments”, “likes”, “follows”, “views”, “favorites”), this works well.
+     * Converts a word to past participle form for relation naming.
      *
-     * important: pass the singular form of the word
+     * This doesn't try to be grammatically perfect - just predictable.
+     * Works well for common patterns: like → liked, reply → replied, comment → commented.
+     *
+     * @param string $word The singular form of the word
      */
     protected static function pastParticiple(string $word): string
     {
-        // handle simple cases
         if (preg_match('/e$/', $word)) {
-            return $word.'d';  // like → liked, name → named
+            return $word.'d';
         }
 
         if (preg_match('/y$/', $word)) {
-            return preg_replace('/y$/', 'ied', $word); // reply → replied
+            return preg_replace('/y$/', 'ied', $word);
         }
 
-        // default: just add 'ed'
         return $word.'ed';
     }
 
+    /**
+     * Checks if a pivot table follows Laravel's standard naming convention.
+     *
+     * Standard pivot tables are named as the concatenation of related tables
+     * usually in alphabetical order (e.g., post_user for posts and users).
+     */
     protected static function isStandardPivotTable(string $pivotTable, string $modelTable, string $relatedTable): bool
     {
         $singularModelTable = Str::singular($modelTable);
