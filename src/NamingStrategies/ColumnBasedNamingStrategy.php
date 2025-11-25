@@ -89,9 +89,18 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
         // and we are processing the users table
         // then we can use the pivot table name 'comments' as a prefix for the relation
         // so the relation name becomes 'commentedPosts'
-        return LegacyNamingStrategy::generateBelongsToManyFunctionName($vo);
 
 
+        $pivotTableName = $fk1Table; // eg 'comments'
+        $relatedTable = $fk2->getForeignTableName();
+
+        $pivotSingular = Str::singular($pivotTableName);   // 'comments' → 'comment'
+
+        $prefix = Str::camel(self::pastParticiple($pivotSingular));
+
+        $related = Str::studly(Str::plural(Str::singular($relatedTable))); // 'Posts'
+
+        return lcfirst($prefix . $related);  // 'commentedPosts'
     }
 
     protected static function getPluralFunctionName(string $modelName): string
@@ -104,6 +113,28 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
     {
         $modelName = lcfirst($modelName);
         return Str::singular($modelName);
+    }
+
+
+    /**
+     * This doesn’t try to be grammatically perfect—just predictable.
+     * For most pivot tables (“comments”, “likes”, “follows”, “views”, “favorites”), this works well.
+     *
+     * important: pass the singular form of the word
+     */
+    protected static function pastParticiple(string $word): string
+    {
+        // handle simple cases
+        if (preg_match('/e$/', $word)) {
+            return $word.'d';  // like → liked, name → named
+        }
+
+        if (preg_match('/y$/', $word)) {
+            return preg_replace('/y$/', 'ied', $word); // reply → replied
+        }
+
+        // default: just add 'ed'
+        return $word.'ed';
     }
 
     protected static function isStandardPivotTable(string $pivotTable, string $modelTable, string $relatedTable): bool
