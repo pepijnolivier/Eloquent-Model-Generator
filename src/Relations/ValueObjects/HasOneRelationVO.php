@@ -56,7 +56,7 @@ class HasOneRelationVO implements RelationValueObjectInterface
         $fkForeignColumn = $this->getFkForeignColumn();
         $fkLocalColumn = $this->getFkLocalColumn();
 
-        return new HasOneRelation($functionName, $modelName, $fkForeignColumn, $fkLocalColumn);
+        return new HasOneRelation($functionName, $modelName, $fkLocalColumn, $fkForeignColumn);
     }
 
     public function getFkLocalColumn(): string

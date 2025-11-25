@@ -59,7 +59,7 @@ class HasManyRelationVO implements RelationValueObjectInterface
         $fkForeignColumn = $this->getFkForeignColumn();
         $fkLocalColumn = $this->getFkLocalColumn();
 
-        return new HasManyRelation($functionName, $modelName, $fkForeignColumn, $fkLocalColumn);
+        return new HasManyRelation($functionName, $modelName, $fkLocalColumn, $fkForeignColumn);
     }
 
     public function getFkLocalColumn(): string
