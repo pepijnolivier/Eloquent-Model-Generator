@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use KitLoong\MigrationsGenerator\Enum\Migrations\Method\IndexType;
 use KitLoong\MigrationsGenerator\Schema\Models\ForeignKey;
 use KitLoong\MigrationsGenerator\Schema\Models\Index;
+use KitLoong\MigrationsGenerator\Schema\Models\Table;
 use KitLoong\MigrationsGenerator\Schema\Schema;
 use Pepijnolivier\EloquentModelGenerator\Contracts\NamingStrategyInterface;
 use Pepijnolivier\EloquentModelGenerator\Factories\Relations\HasOneRelationFactory;
@@ -62,6 +63,12 @@ class RelationsParser
      */
     protected array $tableNamesArray = [];
 
+    /**
+     * Cache of table objects to avoid repeated DB queries
+     * @var array<string, Table>
+     */
+    protected array $tableCache = [];
+
     public function __construct(Schema $schema)
     {
         $this->schema = $schema;
@@ -89,6 +96,10 @@ class RelationsParser
         // Build reverse lookup index
         $this->comment("[RelationsParser] building reference index");
         $this->buildReferencedByIndex();
+
+        // Pre-load all table metadata
+        $this->comment("[RelationsParser] pre-loading table metadata");
+        $this->preloadTableMetadata();
     }
 
     /**
@@ -134,6 +145,22 @@ class RelationsParser
         }
     }
 
+    /**
+     * Pre-load all table metadata (columns and indexes) in a single pass
+     * This eliminates repeated getTable() calls
+     */
+    protected function preloadTableMetadata(): void
+    {
+        $count = count($this->tables);
+        $this->usingProgressbar($count, function (ProgressBar $progressBar) {
+            foreach ($this->tables as $tableName) {
+                // Fetch once and cache
+                $this->tableCache[$tableName] = $this->schema->getTable($tableName);
+                $progressBar->advance();
+            }
+        });
+    }
+
     public function getRelationsForTable(string $tableName): TableRelations
     {
         return $this->schemaRelations->getTableRelations($tableName);
@@ -162,9 +189,9 @@ class RelationsParser
 
     protected function parseTable(string $tableName, ProgressBar $progressBar)
     {
-        $table = $this->schema->getTable($tableName);
+        $table = $this->tableCache[$tableName];
         $foreign = $this->getForeignKeysForTable($tableName);
-        $primary = $this->getPrimaryKeysForTable($tableName);
+        $primary = $this->getPrimaryKeysFromTable($table);
 
         // @improvement we should probably pass in the table everywhere, instead of the table name...
         $isManyToMany = $this->isManyToManyTable($tableName);
@@ -447,17 +474,23 @@ class RelationsParser
     }
 
     /**
-     * @param string $tableName
+     * @param Table $table
      * @return Collection<Index>
      */
-    private function getPrimaryKeysForTable(string $tableName): Collection
+    private function getPrimaryKeysFromTable(Table $table): Collection
     {
-        $table = $this->schema->getTable($tableName);
         $primaryKeys = $table->getIndexes()->filter(function($index) {
             return $index->getType() == IndexType::PRIMARY;
         });
 
         return $primaryKeys;
+    }
+
+
+    private function getPrimaryKeysForTable(string $tableName): Collection
+    {
+        $table = $this->tableCache[$tableName];
+        return $this->getPrimaryKeysFromTable($table);
     }
 
     private function getNamingStrategy(): NamingStrategyInterface
@@ -471,4 +504,5 @@ class RelationsParser
 
         return app($namingStrategyClass);
     }
+
 }
