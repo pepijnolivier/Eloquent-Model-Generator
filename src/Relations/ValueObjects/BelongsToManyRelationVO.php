@@ -5,14 +5,20 @@ namespace Pepijnolivier\EloquentModelGenerator\Relations\ValueObjects;
 use KitLoong\MigrationsGenerator\Schema\Models\ForeignKey;
 use KitLoong\MigrationsGenerator\Schema\Schema;
 use Pepijnolivier\EloquentModelGenerator\Contracts\NamingStrategyInterface;
-use Pepijnolivier\EloquentModelGenerator\Contracts\RelationInterface;
 use Pepijnolivier\EloquentModelGenerator\Contracts\RelationValueObjectInterface;
 use Pepijnolivier\EloquentModelGenerator\Relations\SchemaRelations;
 use Pepijnolivier\EloquentModelGenerator\Relations\Types\BelongsToManyRelation;
 
+/**
+ * This Value Object represents a BelongsToMany relation between two models.
+ * It actually holds the two foreign keys on the pivot (!) table. (eg user_group)
+ *
+ * The VO is used in the following way:
+ * It is created twice, (second time with fk1 and fk2 swapped)
+ * This allows us to generate the BelongsToMany relation from both sides using 1 flow of logic.
+ */
 class BelongsToManyRelationVO implements RelationValueObjectInterface
 {
-
     public function __construct(
         protected readonly Schema $schema,
         protected readonly SchemaRelations $relations,
