@@ -44,6 +44,24 @@ class RelationsParser
 
     protected NamingStrategyInterface $namingStrategy;
 
+    /**
+     * Cache of foreign keys per table to avoid repeated DB queries
+     * @var array<string, Collection<ForeignKey>>
+     */
+    protected array $foreignKeysCache = [];
+
+    /**
+     * Reverse index: which tables reference each table
+     * @var array<string, array<string>>
+     */
+    protected array $referencedByIndex = [];
+
+    /**
+     * Cached array of table names
+     * @var array<string>
+     */
+    protected array $tableNamesArray = [];
+
     public function __construct(Schema $schema)
     {
         $this->schema = $schema;
@@ -59,8 +77,61 @@ class RelationsParser
 
         $this->comment("[RelationsParser] initializing");
 
-        $this->tables = $this->schema->getTableNames()->toArray();
+        // Fetch and cache table names ONCE
+        $this->tableNamesArray = $this->schema->getTableNames()->toArray();
+        $this->tables = $this->tableNamesArray;
         $this->schemaRelations = new SchemaRelations($this->tables);
+
+        // Pre-fetch all foreign keys in a single pass
+        $this->comment("[RelationsParser] pre-fetching foreign keys");
+        $this->preloadForeignKeys();
+
+        // Build reverse lookup index
+        $this->comment("[RelationsParser] building reference index");
+        $this->buildReferencedByIndex();
+    }
+
+    /**
+     * Pre-load all foreign keys for all tables in a single pass
+     * This eliminates N² database queries
+     */
+    protected function preloadForeignKeys(): void
+    {
+        $count = count($this->tables);
+        $this->usingProgressbar($count, function (ProgressBar $progressBar) {
+            foreach ($this->tables as $tableName) {
+                // Fetch once and cache
+                $this->foreignKeysCache[$tableName] = $this->schema->getForeignKeys($tableName);
+                $progressBar->advance();
+            }
+        });
+    }
+
+    /**
+     * Build a reverse lookup index: for each table, track which tables reference it
+     * This transforms O(N²) lookups in isManyToManyTable() to O(1)
+     */
+    protected function buildReferencedByIndex(): void
+    {
+        // Initialize empty arrays for all tables
+        foreach ($this->tables as $tableName) {
+            $this->referencedByIndex[$tableName] = [];
+        }
+
+        // Populate the index
+        foreach ($this->tables as $tableName) {
+            $foreignKeys = $this->foreignKeysCache[$tableName];
+
+            /** @var ForeignKey $fk */
+            foreach ($foreignKeys as $fk) {
+                $foreignTableName = $fk->getForeignTableName();
+
+                // Track that $tableName references $foreignTableName
+                if (isset($this->referencedByIndex[$foreignTableName])) {
+                    $this->referencedByIndex[$foreignTableName][] = $tableName;
+                }
+            }
+        }
     }
 
     public function getRelationsForTable(string $tableName): TableRelations
@@ -124,7 +195,7 @@ class RelationsParser
         // $tableName belongs to $FK
         // FK hasMany $table
 
-        $tableNames = $this->schema->getTableNames()->toArray();
+        $tableNames = $this->tableNamesArray;
         $fkTable = $fk->getForeignTableName();
 
         // validate: ensure there's exactly 1 local and 1 foreign column
@@ -178,7 +249,7 @@ class RelationsParser
         // $tableName belongsTo $FK
         // $FK hasOne $table
 
-        $tableNames = $this->schema->getTableNames()->toArray();
+        $tableNames = $this->tableNamesArray;
         $fkTable = $fk->getForeignTableName();
 
         // validate: ensure there's exactly 1 local and 1 foreign column
@@ -226,7 +297,7 @@ class RelationsParser
      */
     private function addManyToManyRelations(string $tableName, array &$relationsByTable)
     {
-        $tableNames = $this->schema->getTableNames()->toArray();
+        $tableNames = $this->tableNamesArray;
         $foreign = $this->getForeignKeysForTable($tableName);
 
         //$FK1 belongsToMany $FK2
@@ -327,14 +398,13 @@ class RelationsParser
     // then it's cleary a pivot / many-to-many table!
     private function isManyToManyTable(string $tableName): bool
     {
-        $tableNames = $this->schema->getTableNames();
-
-        $foreignKeys = $this->getForeignKeysForTable($tableName);
+        // Use cached foreign keys instead of re-fetching
+        $foreignKeys = $this->foreignKeysCache[$tableName] ?? new Collection();
         $primaryKeys = $this->getPrimaryKeysForTable($tableName);
 
-        //ensure we only have two foreign keys
+        // Ensure we only have two foreign keys
         if (count($foreignKeys) === 2) {
-            //ensure our foreign keys are not also defined as primary keys
+            // Ensure our foreign keys are not also defined as primary keys
             $primaryKeyCountThatAreAlsoForeignKeys = 0;
 
             foreach ($foreignKeys as $foreignKey) {
@@ -351,18 +421,13 @@ class RelationsParser
                 return false;
             }
 
-            // ensure no other tables refer to this one
-            foreach ($tableNames as $compareTable) {
-                if ($tableName !== $compareTable) {
-                    $compareFK = $this->getForeignKeysForTable($compareTable);
+            // USE REVERSE INDEX: Check if any other tables refer to this one
+            // This replaces the O(N) loop with an O(1) lookup
+            $tablesReferencingThis = $this->referencedByIndex[$tableName] ?? [];
 
-                    /** @var ForeignKey $compareForeignKey */
-                    foreach ($compareFK as $compareForeignKey) {
-                        if ($compareForeignKey->getForeignTableName() === $tableName) {
-                            return false;
-                        }
-                    }
-                }
+            if (count($tablesReferencingThis) > 0) {
+                // Some other table references this table, so it's not a pure pivot
+                return false;
             }
 
             return true;
@@ -377,7 +442,8 @@ class RelationsParser
      */
     private function getForeignKeysForTable(string $tableName): Collection
     {
-        return $this->schema->getForeignKeys($tableName);
+        // Return from cache instead of querying database
+        return $this->foreignKeysCache[$tableName] ?? new Collection();
     }
 
     /**
