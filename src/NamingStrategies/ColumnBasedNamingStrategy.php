@@ -36,7 +36,7 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
      */
     public static function generateHasManyFunctionName(HasManyRelationVO $vo): string
     {
-        $localColumn = $vo->getFkLocalColumn();
+        $localColumn = $vo->getChildTableColumn();
 
         if(Str::endsWith($localColumn, '_id')) {
             $withoutIdSuffix = Str::remove('_id', $localColumn);
@@ -64,7 +64,7 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
      */
     public static function generateBelongsToFunctionName(BelongsToRelationVO $vo): string
     {
-        $localColumn = $vo->getFkLocalColumn();
+        $localColumn = $vo->getChildTableColumn();
 
         if(Str::endsWith($localColumn, '_id')) {
             $withoutIdSuffix = Str::remove('_id', $localColumn);

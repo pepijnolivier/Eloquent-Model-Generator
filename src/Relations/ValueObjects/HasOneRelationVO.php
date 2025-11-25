@@ -11,8 +11,8 @@ use Pepijnolivier\EloquentModelGenerator\Relations\Types\HasOneRelation;
 
 class HasOneRelationVO implements RelationValueObjectInterface
 {
-    protected string $fkLocalColumn;
-    protected string $fkForeignColumn;
+    protected string $childTableColumn;
+    protected string $parentTableColumn;
 
     public function __construct(
         protected readonly Schema $schema,
@@ -37,8 +37,8 @@ class HasOneRelationVO implements RelationValueObjectInterface
     protected function init() {
         $foreignKey = $this->foreignKey;
 
-        $this->fkLocalColumn = $foreignKey->getLocalColumns()[0];
-        $this->fkForeignColumn = $foreignKey->getForeignColumns()[0];
+        $this->childTableColumn = $foreignKey->getLocalColumns()[0];
+        $this->parentTableColumn = $foreignKey->getForeignColumns()[0];
     }
 
     public function getModelName(): string {
@@ -53,20 +53,20 @@ class HasOneRelationVO implements RelationValueObjectInterface
     public function getRelation(): HasOneRelation {
         $functionName = $this->getFunctionName();
         $modelName = $this->getModelName();
-        $fkForeignColumn = $this->getFkForeignColumn();
-        $fkLocalColumn = $this->getFkLocalColumn();
+        $parentTableColumn = $this->getParentTableColumn();
+        $childTableColumn = $this->getChildTableColumn();
 
-        return new HasOneRelation($functionName, $modelName, $fkLocalColumn, $fkForeignColumn);
+        return new HasOneRelation($functionName, $modelName, $childTableColumn, $parentTableColumn);
     }
 
-    public function getFkLocalColumn(): string
+    public function getChildTableColumn(): string
     {
-        return $this->fkLocalColumn;
+        return $this->childTableColumn;
     }
 
-    public function getFkForeignColumn(): string
+    public function getParentTableColumn(): string
     {
-        return $this->fkForeignColumn;
+        return $this->parentTableColumn;
     }
 
     public function getSchema(): Schema
