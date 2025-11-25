@@ -27,16 +27,39 @@ class ColumnBasedNamingStrategy implements NamingStrategyInterface
     public static function generateHasManyFunctionName(HasManyRelationVO $vo): string
     {
         /**
-         * @consider
          * read the foreign key local column
          * eg if we're currently processing the table "users" and the foreign local column is posts.author_id
          *
          * then a good hasMany function name would be "authoredPosts"
          * This leaves "posts" open for other relations that might exist between users and posts
-         *
-         *
          */
 
+        $localColumn = $vo->getFkLocalColumn();
+
+        if(Str::endsWith($localColumn, '_id')) {
+            // Extract the prefix from the column name (e.g., "author_id" → "author")
+            $withoutIdSuffix = Str::remove('_id', $localColumn);
+
+            // Get current model's table name to check if this is a standard reference
+            $currentModelTable = $vo->getForeignKey()->getForeignTableName();
+            $currentModelSingular = Str::singular($currentModelTable);
+
+            // Get the related table name (e.g., "posts")
+            $relatedTable = $vo->getForeignKey()->getTableName();
+
+            // If the column base matches the current model's singular name,
+            // use simple plural to avoid verbosity (e.g., nationality.nationality_id → "users", not "nationalitiedUsers")
+            if($withoutIdSuffix === $currentModelSingular) {
+                return Str::camel(Str::plural(Str::singular($relatedTable)));
+            }
+
+            // Otherwise, use past participle prefix for more descriptive names
+            // (e.g., posts.author_id → "authoredPosts")
+            $prefix = Str::camel(self::pastParticiple($withoutIdSuffix));
+            $related = Str::studly(Str::plural(Str::singular($relatedTable)));
+
+            return lcfirst($prefix . $related);
+        }
 
         return LegacyNamingStrategy::generateHasManyFunctionName($vo);
     }
