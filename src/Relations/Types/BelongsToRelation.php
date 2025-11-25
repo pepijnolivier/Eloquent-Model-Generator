@@ -7,16 +7,6 @@ use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
 
 class BelongsToRelation implements RelationInterface
 {
-    /*
-    use HelperTrait;
-
-    public static function fromTable(string $fkTable, string $fkLocalColumn, string $fkForeignColumn) {
-        $belongsToModel = self::generateModelNameFromTableName($fkTable);
-        $belongsToFunctionName = self::getSingularFunctionName($belongsToModel);
-
-        return new self($belongsToFunctionName, $belongsToModel, $fkLocalColumn, $fkForeignColumn);
-    }
-    */
 
     public function __construct(
         protected string $functionName,
