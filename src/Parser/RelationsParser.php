@@ -249,25 +249,6 @@ class RelationsParser
         $fk2Field = $fk2->getLocalColumns()[0];
 
         if (in_array($fk1Table, $tableNames)) {
-
-
-            if(true) {
-                // old flow
-                $belongsToManyModel = $this->generateModelNameFromTableName($fk2Table);
-                $belongsToManyFunctionName = $this->getPluralFunctionName($belongsToManyModel);
-                $through = $tableName;
-
-
-                $oldRelation = new BelongsToManyRelation($belongsToManyFunctionName, $belongsToManyModel, $through, $fk1Field, $fk2Field);
-
-                /** @var TableRelations $tableRelations */
-                // $tableRelations = $relationsByTable[$fk1Table];
-                // $tableRelations->addBelongsToManyRelation($relation);
-
-
-            }
-
-
             $vo = new BelongsToManyRelationVO(
                 $this->schema,
                 $this->schemaRelations,
@@ -285,21 +266,7 @@ class RelationsParser
         }
 
 
-        // todo this one too
         if (in_array($fk2Table, $tableNames)) {
-
-            if(true) {
-                // old flow
-                $belongsToManyModel = $this->generateModelNameFromTableName($fk1Table);
-                $belongsToManyFunctionName = $this->getPluralFunctionName($belongsToManyModel);
-
-                $through = $tableName;
-                $relation = new BelongsToManyRelation($belongsToManyFunctionName, $belongsToManyModel, $through, $fk2Field, $fk1Field);
-
-                /** @var TableRelations $tableRelations */
-                // $tableRelations = $relationsByTable[$fk2Table];
-                // $tableRelations->addBelongsToManyRelation($relation);
-            }
 
             $vo = new BelongsToManyRelationVO(
                 $this->schema,
