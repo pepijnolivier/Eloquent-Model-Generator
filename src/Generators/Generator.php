@@ -34,6 +34,7 @@ class Generator
 
         [$modelFile, $modelClass] = (new ModelGenerator(
             $this->connection,
+            $tableName,
             $modelName,
             $this->getModelNamespaceString()
         ))->handle();
