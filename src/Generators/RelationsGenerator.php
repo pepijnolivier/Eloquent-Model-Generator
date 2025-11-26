@@ -14,9 +14,9 @@ class RelationsGenerator
 {
     protected array $relationsMap = [];
     public function __construct(
-        protected PhpNamespace &$namespace,
-        protected ClassLike &$classLike,
-        protected TableRelations $relations, // we should really have a Relations class here
+        protected PhpNamespace $namespace,
+        protected ClassLike $classLike,
+        protected TableRelations $relations,
         protected string $modelNamespaceString
     ) {
         // we keep track of the relation names,
