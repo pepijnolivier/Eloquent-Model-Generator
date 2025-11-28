@@ -2,6 +2,7 @@
 
 namespace Pepijnolivier\EloquentModelGenerator\Generators;
 
+use Illuminate\Support\Arr;
 use KitLoong\MigrationsGenerator\Schema\Schema;
 use Pepijnolivier\EloquentModelGenerator\Parser\RelationsParser;
 use Pepijnolivier\EloquentModelGenerator\Relations\TableRelations;
@@ -34,6 +35,7 @@ class Generator
 
         [$modelFile, $modelClass] = (new ModelGenerator(
             $this->connection,
+            $tableName,
             $modelName,
             $this->getModelNamespaceString()
         ))->handle();
@@ -90,17 +92,23 @@ class Generator
 
     private function getModelFolder(): string
     {
-        return config(
-            'eloquent_model_generator.model_path',
+        return Arr::get(
+            $this->getConfig(),
+            'model_path',
             'app/Models/Generated'
         );
     }
 
     private function getTraitFolder(): string
     {
-        return config(
-            'eloquent_model_generator.trait_path',
+        return Arr::get(
+            $this->getConfig(),
+            'trait_path',
             'app/Models/Generated/Relations'
         );
+    }
+
+    private function getConfig(): array {
+        return config('eloquent-model-generator');
     }
 }

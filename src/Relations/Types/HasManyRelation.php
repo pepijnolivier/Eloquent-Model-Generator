@@ -2,22 +2,12 @@
 
 namespace Pepijnolivier\EloquentModelGenerator\Relations\Types;
 
+use Pepijnolivier\EloquentModelGenerator\Contracts\RelationInterface;
 use Pepijnolivier\EloquentModelGenerator\Traits\HelperTrait;
 
-class HasManyRelation
+class HasManyRelation implements RelationInterface
 {
     use HelperTrait;
-
-    public static function fromTable(string $tableName, string $foreignKey, string $localKey): HasManyRelation {
-        $hasManyModel = self::generateModelNameFromTableName($tableName);
-        $hasManyFunctionName = self::getPluralFunctionName($hasManyModel);
-
-        // @toconsider: if it's a table with only 2 columns, and they are both the FK
-        // then it's just a pure pivot table. We might not want to add a relation for that.
-
-        return new HasManyRelation($hasManyFunctionName, $hasManyModel, $foreignKey, $localKey);
-
-    }
 
     public function __construct(
         protected string $functionName,

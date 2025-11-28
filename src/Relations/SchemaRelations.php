@@ -28,7 +28,6 @@ class SchemaRelations
     protected function init() {
         $count = count($this->tableNames);
 
-        $this->comment("[SchemaRelations]: Initializing relations ($count)");
         $this->usingProgressbar($count, function (ProgressBar $progressBar) {
             foreach ($this->tableNames as $tableName) {
                 $this->relations[$tableName] = new TableRelations($tableName);
