@@ -17,13 +17,12 @@
     ],
     "require": {
         "php": "^8.4",
-        "laravel/framework": "^12.0",
+        "laravel/framework": "^12.0|^13.0",
         "kitloong/laravel-migrations-generator": "^7.0",
         "nette/php-generator": "^4.0",
         "spatie/laravel-package-tools": "^1.12.0"
     },
-    "require-dev": {
-    },
+    "require-dev": {},
     "autoload": {
         "psr-4": {
             "Pepijnolivier\\EloquentModelGenerator\\": "src/",
@@ -35,8 +34,7 @@
             "Pepijnolivier\\EloquentModelGenerator\\Tests\\": "tests/"
         }
     },
-    "scripts": {
-    },
+    "scripts": {},
     "config": {
         "sort-packages": true,
         "allow-plugins": {
