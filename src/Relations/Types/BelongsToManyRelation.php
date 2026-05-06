@@ -2,7 +2,9 @@
 
 namespace Pepijnolivier\EloquentModelGenerator\Relations\Types;
 
-class BelongsToManyRelation
+use Pepijnolivier\EloquentModelGenerator\Contracts\RelationInterface;
+
+class BelongsToManyRelation implements RelationInterface
 {
     public function __construct(
         protected string  $functionName,

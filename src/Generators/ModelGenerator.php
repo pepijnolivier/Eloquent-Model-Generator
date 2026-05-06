@@ -9,6 +9,7 @@ class ModelGenerator
 {
     public function __construct(
         protected string $connection,
+        protected string $tableName,
         protected string $modelName,
         protected string $modelNamespaceString,
     ) { }
@@ -25,6 +26,13 @@ class ModelGenerator
         $connectionProperty = $modelClass->addProperty('connection', $this->connection)
             ->setProtected()
             ->setValue($this->connection);
+
+
+        // add the "table" property
+        $modelClass->addProperty('table', $this->tableName)
+            ->setProtected()
+            ->setValue($this->tableName);
+
 
         // add the "guarded" property as an empty array
         $modelClass->addProperty('guarded', [])

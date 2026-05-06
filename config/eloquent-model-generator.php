@@ -34,4 +34,9 @@ return [
     |
     */
     'extend' => Model::class,
+
+
+
+    // 'naming_strategy' => \Pepijnolivier\EloquentModelGenerator\NamingStrategies\LegacyNamingStrategy::class,
+    'naming_strategy' => \Pepijnolivier\EloquentModelGenerator\NamingStrategies\ColumnBasedNamingStrategy::class,
 ];

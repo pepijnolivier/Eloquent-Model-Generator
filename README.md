@@ -79,6 +79,8 @@ return [
 
 ```php
 php artisan generate:models
+
+php artisan generate:models --connection=mysql
 ```
 
 ## Testing
